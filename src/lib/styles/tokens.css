@@ -1,0 +1,87 @@
+/**
+ * Design-Tokens für das Freundebuch.
+ * Materialsprache: gealtertes Papier, Sepia-Ornamente, Ledereinband.
+ * Die Buchseiten bleiben in beiden Themes warm (ein echtes Buch invertiert nicht);
+ * im Dark-Theme verdunkelt sich nur der „Raum" um das Buch herum.
+ */
+
+:root {
+	/* Papier */
+	--paper-100: #f7f1e1;
+	--paper-200: #f0e7d1;
+	--paper-300: #e7dbbe;
+	--paper-edge: #d8c7a0;
+	--paper-line: #cbb98f;
+
+	/* Tinte / Text */
+	--ink-900: #2c2620;
+	--ink-700: #4a4034;
+	--ink-500: #6d5f4b;
+	--ink-300: #90806a;
+
+	/* Akzente */
+	--ochre: #a9762c;
+	--ochre-deep: #83571b;
+	--sage: #6f7d5f;
+	--oxblood: #6e2f2a;
+
+	/* Leder / Einband */
+	--leather-900: #3a2015;
+	--leather-700: #56311f;
+	--leather-500: #7a4a30;
+	--leather-stitch: #d8c7a0;
+
+	/* Raum um das Buch */
+	--room: #c3b79b;
+	--room-vignette: rgba(58, 32, 21, 0.35);
+
+	/* UI */
+	--surface: #f7f1e1;
+	--surface-line: #d8c7a0;
+	--shadow-page: rgba(44, 32, 20, 0.22);
+	--shadow-book: rgba(35, 20, 12, 0.45);
+	--focus: #83571b;
+	--danger: #a5342b;
+	--ok: #5c7048;
+
+	/* Typografie */
+	--font-label: 'Oswald', 'Arial Narrow', 'Helvetica Neue', sans-serif;
+	--font-body: 'Crimson Pro', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+	--font-hand: 'Kalam', 'Bradley Hand', 'Segoe Print', cursive;
+
+	--step--1: clamp(0.82rem, 0.79rem + 0.12vw, 0.9rem);
+	--step-0: clamp(1rem, 0.95rem + 0.22vw, 1.13rem);
+	--step-1: clamp(1.2rem, 1.11rem + 0.4vw, 1.44rem);
+	--step-2: clamp(1.44rem, 1.3rem + 0.7vw, 1.9rem);
+	--step-3: clamp(1.9rem, 1.6rem + 1.5vw, 2.9rem);
+
+	--radius-page: 3px 10px 10px 3px;
+	--maxw-read: 34rem;
+
+	color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme='light']) {
+		--room: #191510;
+		--room-vignette: rgba(0, 0, 0, 0.55);
+		--shadow-book: rgba(0, 0, 0, 0.7);
+		/* Seiten minimal gedämpft, damit sie bei Lampenlicht nicht blenden */
+		--paper-100: #efe7d2;
+		--paper-200: #e6dcc2;
+		--paper-300: #dccfb0;
+		--surface: #efe7d2;
+		color-scheme: dark;
+	}
+}
+
+:root[data-theme='dark'] {
+	--room: #191510;
+	--room-vignette: rgba(0, 0, 0, 0.55);
+	--shadow-book: rgba(0, 0, 0, 0.7);
+	--paper-100: #efe7d2;
+	--paper-200: #e6dcc2;
+	--paper-300: #dccfb0;
+	--surface: #efe7d2;
+	color-scheme: dark;
+}

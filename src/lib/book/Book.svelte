@@ -1,0 +1,381 @@
+<script lang="ts">
+	import { untrack, type Snippet } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+
+	let {
+		title,
+		subtitle,
+		pages,
+		open = $bindable(false),
+		startPage = 0,
+		onnavigate
+	}: {
+		title: string;
+		subtitle?: string;
+		/** Innenseiten ab der ersten linken Seite nach dem Aufschlagen */
+		pages: Snippet[];
+		open?: boolean;
+		startPage?: number;
+		onnavigate?: (leaf: number) => void;
+	} = $props();
+
+	function clamp(n: number) {
+		return Math.max(0, Math.min(n, Math.max(0, pages.length - 1)));
+	}
+
+	// startPage nur als Startwert übernehmen, danach lokal steuern
+	let leaf = $state(untrack(() => clamp(startPage)));
+	let perView = $state(2);
+	let dir = $state(1);
+	let reduced = $state(false);
+
+	const viewStart = $derived(perView === 2 ? leaf - (leaf % 2) : leaf);
+	const visible = $derived(
+		Array.from({ length: perView }, (_, i) => viewStart + i).filter((i) => i < pages.length)
+	);
+	const atStart = $derived(viewStart <= 0);
+	const atEnd = $derived(viewStart + perView >= pages.length);
+	const totalSpreads = $derived(Math.ceil(pages.length / perView));
+	const currentSpread = $derived(Math.floor(viewStart / perView) + 1);
+	const dur = $derived(reduced ? 0 : 340);
+
+	$effect(() => {
+		const mqWide = window.matchMedia('(min-width: 900px)');
+		const mqMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const sync = () => {
+			perView = mqWide.matches ? 2 : 1;
+			reduced = mqMotion.matches;
+		};
+		sync();
+		mqWide.addEventListener('change', sync);
+		mqMotion.addEventListener('change', sync);
+		return () => {
+			mqWide.removeEventListener('change', sync);
+			mqMotion.removeEventListener('change', sync);
+		};
+	});
+
+	export function goto(target: number) {
+		const next = clamp(perView === 2 ? target - (target % 2) : target);
+		dir = next >= leaf ? 1 : -1;
+		leaf = next;
+		onnavigate?.(leaf);
+	}
+	function next() {
+		if (!atEnd) goto(viewStart + perView);
+	}
+	function prev() {
+		if (!atStart) goto(viewStart - perView);
+	}
+
+	function onkeydown(e: KeyboardEvent) {
+		if (!open) return;
+		if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+			next();
+			e.preventDefault();
+		} else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+			prev();
+			e.preventDefault();
+		}
+	}
+
+	let swipeX = 0;
+	function onpointerdown(e: PointerEvent) {
+		if (e.pointerType === 'mouse') return;
+		swipeX = e.clientX;
+	}
+	function onpointerup(e: PointerEvent) {
+		if (e.pointerType === 'mouse' || !swipeX) return;
+		const dx = e.clientX - swipeX;
+		swipeX = 0;
+		if (dx < -45) next();
+		else if (dx > 45) prev();
+	}
+</script>
+
+<svelte:window {onkeydown} />
+
+{#if !open}
+	<div class="stage stage--closed">
+		<button type="button" class="cover" onclick={() => (open = true)} aria-label="Buch aufschlagen">
+			<span class="cover__edge" aria-hidden="true"></span>
+			<span class="cover__spine" aria-hidden="true"></span>
+			<span class="cover__plate">
+				<span class="cover__ornament" aria-hidden="true">✦</span>
+				<span class="cover__title">{title}</span>
+				{#if subtitle}<span class="cover__subtitle">{subtitle}</span>{/if}
+			</span>
+			<span class="cover__hint label">Aufschlagen</span>
+		</button>
+	</div>
+{:else}
+	<div class="stage">
+		<div
+			class="book"
+			class:book--single={perView === 1}
+			role="group"
+			aria-roledescription="Buch"
+			aria-label={title}
+			{onpointerdown}
+			{onpointerup}
+		>
+			<div class="book__spread">
+				{#key viewStart}
+					<div
+						class="book__pages"
+						in:fly={{ x: dir * 60, duration: dur, easing: cubicOut, opacity: 0 }}
+						out:fly={{ x: dir * -40, duration: dur, easing: cubicOut, opacity: 0 }}
+					>
+						{#each visible as pageIndex (pageIndex)}
+							{@render pages[pageIndex]()}
+						{/each}
+						{#if perView === 2 && visible.length === 1}
+							<div class="book__blank" aria-hidden="true"></div>
+						{/if}
+					</div>
+				{/key}
+				<div class="book__binding" aria-hidden="true"></div>
+			</div>
+
+			<button
+				type="button"
+				class="nav nav--prev"
+				onclick={prev}
+				disabled={atStart}
+				aria-label="Zurückblättern"
+			>
+				‹
+			</button>
+			<button
+				type="button"
+				class="nav nav--next"
+				onclick={next}
+				disabled={atEnd}
+				aria-label="Weiterblättern"
+			>
+				›
+			</button>
+		</div>
+
+		<div class="toolbar">
+			<button type="button" class="toolbar__btn" onclick={() => goto(0)} disabled={atStart}>
+				Inhaltsverzeichnis
+			</button>
+			<span class="toolbar__progress label" aria-live="polite">
+				Seite {currentSpread} / {totalSpreads}
+			</span>
+			<button type="button" class="toolbar__btn" onclick={() => (open = false)}>
+				Buch schließen
+			</button>
+		</div>
+	</div>
+{/if}
+
+<style>
+	.stage {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.2rem;
+		width: 100%;
+		padding: clamp(1rem, 4vw, 3rem) 16px;
+		background: radial-gradient(120% 80% at 50% 0%, transparent, var(--room-vignette));
+	}
+
+	/* ---------------------------------------------------------------- Cover */
+	.cover {
+		position: relative;
+		width: min(78vw, 340px);
+		aspect-ratio: 5 / 7;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
+		border-radius: 6px 12px 12px 6px;
+		background:
+			linear-gradient(115deg, rgba(255, 240, 220, 0.16), transparent 42%),
+			linear-gradient(180deg, var(--leather-700), var(--leather-900));
+		box-shadow:
+			0 2px 0 rgba(255, 240, 220, 0.08) inset,
+			0 26px 50px -18px var(--shadow-book);
+		color: rgba(247, 241, 225, 0.94);
+		transition:
+			transform 0.35s var(--cubic, ease),
+			box-shadow 0.35s ease;
+	}
+	.cover:hover,
+	.cover:focus-visible {
+		transform: translateY(-3px) rotate(-0.4deg);
+		box-shadow: 0 34px 60px -18px var(--shadow-book);
+	}
+	.cover__spine {
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: 16px;
+		border-radius: 6px 0 0 6px;
+		background: linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.05));
+	}
+	.cover__edge {
+		position: absolute;
+		inset: 8px -6px 8px auto;
+		width: 8px;
+		border-radius: 0 3px 3px 0;
+		background: repeating-linear-gradient(
+			180deg,
+			var(--paper-200) 0 2px,
+			var(--paper-edge) 2px 3px
+		);
+	}
+	.cover__plate {
+		position: absolute;
+		inset: 14% 14% auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 1.4rem 1rem;
+		border: 1px solid rgba(247, 241, 225, 0.35);
+		border-radius: 4px;
+	}
+	.cover__ornament {
+		font-size: 1.3rem;
+		opacity: 0.8;
+	}
+	.cover__title {
+		font-family: var(--font-hand);
+		font-size: var(--step-2);
+		font-weight: 700;
+		text-align: center;
+		line-height: 1.15;
+	}
+	.cover__subtitle {
+		font-family: var(--font-label);
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		font-size: var(--step--1);
+		opacity: 0.8;
+	}
+	.cover__hint {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 8%;
+		text-align: center;
+		font-size: var(--step--1);
+		letter-spacing: 0.14em;
+		opacity: 0.7;
+	}
+
+	/* ----------------------------------------------------------------- Book */
+	.book {
+		position: relative;
+		width: min(96vw, 60rem);
+	}
+	.book__spread {
+		position: relative;
+		aspect-ratio: 2 / 1.34;
+		border-radius: 6px;
+		box-shadow: 0 30px 60px -22px var(--shadow-book);
+		overflow: hidden;
+	}
+	.book--single .book__spread {
+		aspect-ratio: 1 / 1.36;
+		max-width: 30rem;
+		margin-inline: auto;
+	}
+	.book__pages {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+	}
+	.book--single .book__pages {
+		grid-template-columns: 1fr;
+	}
+	.book__blank {
+		background: var(--paper-300);
+	}
+	.book__binding {
+		position: absolute;
+		inset: 0 auto 0 50%;
+		width: 30px;
+		transform: translateX(-50%);
+		pointer-events: none;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			rgba(58, 32, 21, 0.16) 42%,
+			rgba(58, 32, 21, 0.28) 50%,
+			rgba(58, 32, 21, 0.16) 58%,
+			transparent
+		);
+	}
+	.book--single .book__binding {
+		display: none;
+	}
+
+	.nav {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 2.6rem;
+		height: 2.6rem;
+		display: grid;
+		place-items: center;
+		font-size: 1.7rem;
+		line-height: 1;
+		border-radius: 50%;
+		border: 1px solid var(--surface-line);
+		background: var(--surface);
+		color: var(--ink-700);
+		cursor: pointer;
+		box-shadow: 0 6px 16px -8px var(--shadow-book);
+	}
+	.nav--prev {
+		left: -0.6rem;
+	}
+	.nav--next {
+		right: -0.6rem;
+	}
+	.nav:disabled {
+		opacity: 0.3;
+		cursor: default;
+	}
+	@media (min-width: 640px) {
+		.nav--prev {
+			left: -1.4rem;
+		}
+		.nav--next {
+			right: -1.4rem;
+		}
+	}
+
+	/* -------------------------------------------------------------- Toolbar */
+	.toolbar {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem 1rem;
+	}
+	.toolbar__btn {
+		border: 1px solid var(--surface-line);
+		background: var(--surface);
+		color: var(--ink-700);
+		padding: 0.4rem 0.9rem;
+		border-radius: 999px;
+		font-family: var(--font-label);
+		font-size: var(--step--1);
+		letter-spacing: 0.04em;
+		cursor: pointer;
+	}
+	.toolbar__btn:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+	.toolbar__progress {
+		color: var(--ink-500);
+		font-size: var(--step--1);
+		font-variant-numeric: tabular-nums;
+	}
+</style>
