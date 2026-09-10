@@ -1,18 +1,6 @@
-import { loadBookAccess, requireAdmin } from '$lib/server/guard';
+import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, cookies }) => {
-	const { access, locked } = await loadBookAccess(params.token, cookies);
-	if (locked) return { locked: true as const };
-	requireAdmin(access);
-
-	return {
-		locked: false as const,
-		book: {
-			title: access.book.title,
-			subtitle: access.book.subtitle,
-			status: access.book.status,
-			moderationMode: access.book.moderationMode
-		}
-	};
+export const load: PageServerLoad = ({ params }) => {
+	redirect(307, `/b/${params.token}/admin/eintraege`);
 };
