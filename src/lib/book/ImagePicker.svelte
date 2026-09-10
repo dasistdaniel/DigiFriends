@@ -92,7 +92,9 @@
 		<div class="grid">
 			{#each items as item (item.id)}
 				<div class="polaroid">
-					<img src={item.thumbUrl} alt="Foto-Vorschau" />
+					<span class="polaroid__frame">
+						<img src={item.thumbUrl} alt="Foto-Vorschau" />
+					</span>
 					<button
 						type="button"
 						class="polaroid__x"
@@ -173,16 +175,23 @@
 		box-shadow: 0 6px 14px -8px var(--shadow-page);
 		padding: 0.3rem 0.3rem 1rem;
 		position: relative;
-		display: grid;
 	}
-	.polaroid img {
+	.polaroid__frame {
+		display: block;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		background: var(--paper-300);
+	}
+	.polaroid__frame img {
+		display: block;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 	}
 	.polaroid--add {
-		align-items: center;
-		justify-items: center;
+		display: grid;
+		place-items: center;
 		border-style: dashed;
 		cursor: pointer;
 		font-size: 1.4rem;

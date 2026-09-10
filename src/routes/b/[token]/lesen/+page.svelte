@@ -257,11 +257,13 @@
 		box-shadow: 0 6px 14px -8px var(--shadow-page);
 		transform: rotate(var(--rot, 0deg));
 		cursor: pointer;
-		display: grid;
+		overflow: hidden;
 	}
 	.polaroid img {
+		display: block;
 		width: 100%;
 		height: 100%;
+		min-height: 0;
 		object-fit: cover;
 	}
 
