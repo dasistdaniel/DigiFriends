@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
+
 	type Item = { id: string; thumbUrl: string };
 
 	let {
@@ -6,6 +8,7 @@
 		kind,
 		variant = 'photos',
 		max = 6,
+		initial = [],
 		// eslint-disable-next-line no-useless-assignment -- $bindable-Default, Svelte-Runes
 		value = $bindable(variant === 'photos' ? [] : '')
 	}: {
@@ -13,12 +16,14 @@
 		kind: 'avatar' | 'photo' | 'drawing';
 		variant?: 'avatar' | 'photos';
 		max?: number;
+		/** bereits vorhandene Bilder (beim Bearbeiten) */
+		initial?: Item[];
 		/** avatar: eine asset-id ('' = keine); photos: Liste von asset-ids */
 		value: string | string[];
 	} = $props();
 
 	const multiple = $derived(variant === 'photos');
-	let items = $state<Item[]>([]);
+	let items = $state<Item[]>(untrack(() => [...initial]));
 	let uploading = $state(false);
 	let errorMsg = $state('');
 	let input: HTMLInputElement | undefined = $state();

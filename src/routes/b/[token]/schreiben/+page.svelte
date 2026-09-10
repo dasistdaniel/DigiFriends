@@ -1,23 +1,21 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
-	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import BookPage from '$lib/book/BookPage.svelte';
-	import ImagePicker from '$lib/book/ImagePicker.svelte';
+	import EntryForm from '$lib/book/EntryForm.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 
-	let displayName = $state(untrack(() => (!data.locked && !data.closed ? data.prefillName : '')));
-	let avatarAssetId = $state('');
-	let photoAssetIds = $state<string[]>([]);
-
 	const closed = $derived(!data.locked && data.closed);
 	const questions = $derived('questions' in data && data.questions ? data.questions : []);
-	const leftQuestions = $derived(questions.filter((q) => q.section === 'left'));
-	const rightQuestions = $derived(questions.filter((q) => q.section === 'right'));
+	const prefillName = $derived(!data.locked && !data.closed ? data.prefillName : '');
+	const lockName = $derived(!data.locked && !data.closed && data.lockName);
+	const reviewMode = $derived(
+		!data.locked &&
+			data.book &&
+			'moderationMode' in data.book &&
+			data.book.moderationMode === 'review'
+	);
 
-	let submitting = $state(false);
 	const message = $derived(form && 'message' in form ? form.message : undefined);
 	const done = $derived(form && 'done' in form ? form.done : undefined);
 
@@ -67,100 +65,16 @@
 	</main>
 {:else}
 	<main>
-		<form
-			method="POST"
+		<EntryForm
+			token={data.token}
+			{questions}
 			action="?/submit"
-			use:enhance={() => {
-				submitting = true;
-				return async ({ update }) => {
-					await update({ reset: false });
-					submitting = false;
-				};
-			}}
-		>
-			{#if message}<p class="formError">{message}</p>{/if}
-
-			<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
-			<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
-
-			<div class="spread">
-				<BookPage side="left">
-					<div class="sheet">
-						<div class="head">
-							<label class="from">
-								<span class="label">Eintrag von</span>
-								<input
-									class="hand"
-									name="displayName"
-									required
-									maxlength="80"
-									bind:value={displayName}
-									readonly={!data.locked && !data.closed && data.lockName}
-									placeholder="dein Name"
-								/>
-							</label>
-							<ImagePicker
-								token={data.token}
-								kind="avatar"
-								variant="avatar"
-								bind:value={avatarAssetId}
-							/>
-						</div>
-						{#each leftQuestions as q (q.id)}
-							<label class="q">
-								<span class="label">{q.label}{q.required ? ' *' : ''}</span>
-								{#if q.fieldType === 'date'}
-									<input type="date" name="q_{q.id}" class="hand" />
-								{:else if q.fieldType === 'short'}
-									<input name="q_{q.id}" class="hand" maxlength="200" />
-								{:else}
-									<textarea name="q_{q.id}" class="hand" rows="2" maxlength="1000"></textarea>
-								{/if}
-							</label>
-						{/each}
-					</div>
-				</BookPage>
-
-				<BookPage side="right">
-					<div class="sheet">
-						{#each rightQuestions as q (q.id)}
-							<label class="q">
-								<span class="label">{q.label}{q.required ? ' *' : ''}</span>
-								{#if q.fieldType === 'date'}
-									<input type="date" name="q_{q.id}" class="hand" />
-								{:else if q.fieldType === 'short'}
-									<input name="q_{q.id}" class="hand" maxlength="200" />
-								{:else}
-									<textarea name="q_{q.id}" class="hand" rows="2" maxlength="1000"></textarea>
-								{/if}
-							</label>
-						{/each}
-						<div class="q">
-							<span class="label">Fotos</span>
-							<ImagePicker
-								token={data.token}
-								kind="photo"
-								variant="photos"
-								bind:value={photoAssetIds}
-							/>
-						</div>
-						<label class="q closing">
-							<span class="label">Grußformel</span>
-							<input name="closingLine" class="hand" maxlength="120" placeholder="Alles Liebe, …" />
-						</label>
-					</div>
-				</BookPage>
-			</div>
-
-			<div class="actions">
-				<button class="cta" type="submit" disabled={submitting}>
-					{submitting ? 'Wird gespeichert …' : 'Eintrag abschließen'}
-				</button>
-				{#if data.book && 'moderationMode' in data.book && data.book.moderationMode === 'review'}
-					<span class="hint">Erscheint erst nach Freigabe.</span>
-				{/if}
-			</div>
-		</form>
+			submitLabel="Eintrag abschließen"
+			initial={{ displayName: prefillName }}
+			{lockName}
+			moderationHint={reviewMode}
+			{message}
+		/>
 	</main>
 {/if}
 
@@ -185,98 +99,6 @@
 		font-size: var(--step-2);
 		margin: 0 0 0.6rem;
 	}
-
-	form {
-		max-width: 60rem;
-		margin: 0 auto;
-	}
-	.formError {
-		max-width: 60rem;
-		margin: 0 auto 1rem;
-		color: var(--danger);
-		font-size: var(--step--1);
-		background: var(--surface);
-		border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--surface-line));
-		border-radius: 6px;
-		padding: 0.5rem 0.8rem;
-	}
-
-	.spread {
-		display: grid;
-		grid-template-columns: 1fr;
-		border-radius: 6px;
-		overflow: hidden;
-		box-shadow: 0 30px 60px -22px var(--shadow-book);
-	}
-	@media (min-width: 900px) {
-		.spread {
-			grid-template-columns: 1fr 1fr;
-		}
-	}
-
-	.sheet {
-		display: flex;
-		flex-direction: column;
-		gap: 0.9rem;
-	}
-	.head {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: 1rem;
-	}
-	.head .from {
-		flex: 1;
-	}
-	.from,
-	.q {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-	.q .label {
-		font-size: var(--step--1);
-		letter-spacing: 0.05em;
-		color: var(--ink-500);
-	}
-	input,
-	textarea {
-		border: 0;
-		border-bottom: 1.5px solid var(--paper-line);
-		background: color-mix(in srgb, var(--paper-100) 60%, transparent);
-		padding: 0.3rem 0.2rem;
-		font-size: var(--step-1);
-		color: var(--ink-900);
-	}
-	textarea {
-		resize: vertical;
-		border: 1.5px solid var(--paper-line);
-		border-radius: 4px;
-	}
-	input:focus-visible,
-	textarea:focus-visible {
-		outline: 2px solid var(--focus);
-		outline-offset: 1px;
-	}
-	input[readonly] {
-		opacity: 0.75;
-	}
-	.from input {
-		font-size: var(--step-1);
-	}
-
-	.actions {
-		max-width: 60rem;
-		margin: 1.4rem auto 0;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		flex-wrap: wrap;
-		background: var(--surface);
-		border: 1px solid var(--surface-line);
-		border-radius: 999px;
-		padding: 0.6rem 0.9rem;
-	}
 	.cta {
 		display: inline-block;
 		background: var(--oxblood);
@@ -291,14 +113,6 @@
 		cursor: pointer;
 		text-decoration: none;
 	}
-	.cta:disabled {
-		opacity: 0.5;
-	}
-	.hint {
-		font-size: var(--step--1);
-		color: var(--ink-300);
-	}
-
 	.editlink-label {
 		margin: 1.2rem 0 0.3rem;
 		font-size: var(--step--1);

@@ -1,8 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const token = $derived(data.token);
+	const editHref = (id: string) =>
+		resolve('/b/[token]/eintrag/[editToken]', { token, editToken: id });
 
 	const queue = $derived(data.locked ? [] : data.queue);
 	const entries = $derived(data.locked ? [] : data.entries);
@@ -52,6 +57,7 @@
 								<input type="hidden" name="id" value={e.id} />
 								<button class="btn btn--ok">Freigeben</button>
 							</form>
+							<a class="btn" href={editHref(e.id)}>Ansehen / Bearbeiten</a>
 							<form method="POST" action="?/delete" use:enhance>
 								<input type="hidden" name="id" value={e.id} />
 								<button class="btn btn--danger">Löschen</button>
@@ -109,6 +115,7 @@
 						</div>
 
 						<div class="card__actions">
+							<a class="btn" href={editHref(e.id)}>Bearbeiten</a>
 							{#if e.state === 'published'}
 								<form method="POST" action="?/hide" use:enhance>
 									<input type="hidden" name="id" value={e.id} />
@@ -317,6 +324,8 @@
 		border-radius: 999px;
 		padding: 0.35rem 0.8rem;
 		cursor: pointer;
+		text-decoration: none;
+		display: inline-block;
 	}
 	.btn--ok {
 		background: var(--oxblood);
