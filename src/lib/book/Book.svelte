@@ -370,18 +370,27 @@
 		flex-wrap: wrap;
 		align-items: center;
 		justify-content: center;
-		gap: 0.6rem 1rem;
+		gap: 0.5rem 0.6rem;
+		background: var(--surface);
+		border: 1px solid var(--surface-line);
+		border-radius: 999px;
+		padding: 0.35rem 0.6rem;
+		box-shadow: 0 8px 20px -12px var(--shadow-book);
 	}
 	.toolbar__btn {
-		border: 1px solid var(--surface-line);
-		background: var(--surface);
+		border: 1px solid transparent;
+		background: transparent;
 		color: var(--ink-700);
-		padding: 0.4rem 0.9rem;
+		padding: 0.35rem 0.8rem;
 		border-radius: 999px;
 		font-family: var(--font-label);
 		font-size: var(--step--1);
 		letter-spacing: 0.04em;
 		cursor: pointer;
+	}
+	.toolbar__btn:hover:not(:disabled) {
+		border-color: var(--surface-line);
+		background: var(--paper-100);
 	}
 	.toolbar__btn:disabled {
 		opacity: 0.4;

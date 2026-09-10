@@ -62,8 +62,21 @@
 <style>
 	.admin {
 		max-width: 54rem;
-		margin: 0 auto;
-		padding: clamp(1.5rem, 5vw, 3rem) 16px 5rem;
+		margin: clamp(1rem, 4vw, 3rem) auto;
+		padding: clamp(1.5rem, 5vw, 2.6rem);
+		background: var(--paper-200);
+		border: 1px solid var(--surface-line);
+		border-radius: 12px;
+		box-shadow: 0 24px 50px -30px var(--shadow-book);
+	}
+	@media (max-width: 640px) {
+		.admin {
+			margin: 0;
+			border-radius: 0;
+			border-left: 0;
+			border-right: 0;
+			min-height: 100vh;
+		}
 	}
 	.admin__bar {
 		display: flex;

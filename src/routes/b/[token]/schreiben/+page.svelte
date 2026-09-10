@@ -195,6 +195,10 @@
 		margin: 0 auto 1rem;
 		color: var(--danger);
 		font-size: var(--step--1);
+		background: var(--surface);
+		border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--surface-line));
+		border-radius: 6px;
+		padding: 0.5rem 0.8rem;
 	}
 
 	.spread {
@@ -268,6 +272,10 @@
 		align-items: center;
 		gap: 1rem;
 		flex-wrap: wrap;
+		background: var(--surface);
+		border: 1px solid var(--surface-line);
+		border-radius: 999px;
+		padding: 0.6rem 0.9rem;
 	}
 	.cta {
 		display: inline-block;
