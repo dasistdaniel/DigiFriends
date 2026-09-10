@@ -10,6 +10,15 @@ export const SIGNUP_MODE: 'open' | 'closed' = env.SIGNUP_MODE === 'closed' ? 'cl
 /** Öffentliche Basis-URL für generierte Links (ohne abschließenden Slash). */
 export const ORIGIN = (env.ORIGIN?.trim() || 'http://localhost:5173').replace(/\/$/, '');
 
+/** Verzeichnis für hochgeladene Bilder (in Produktion ein Docker-Volume). */
+export const UPLOAD_DIR = env.UPLOAD_DIR?.trim() || '.uploads';
+
+/** Maximale Uploadgröße je Bild. */
+export const MAX_UPLOAD_BYTES = Number(env.MAX_UPLOAD_BYTES) || 8 * 1024 * 1024;
+
+/** Obergrenzen je Eintrag. */
+export const MAX_PHOTOS_PER_ENTRY = Number(env.MAX_PHOTOS_PER_ENTRY) || 6;
+
 /** Mailversand ist nur aktiv, wenn eine SMTP-URL gesetzt ist. */
 export const SMTP_URL = env.SMTP_URL?.trim() || null;
 export const MAIL_FROM = env.MAIL_FROM?.trim() || 'Freundebuch <noreply@example.com>';

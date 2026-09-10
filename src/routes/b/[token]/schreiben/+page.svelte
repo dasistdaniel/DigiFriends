@@ -3,11 +3,14 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import BookPage from '$lib/book/BookPage.svelte';
+	import ImagePicker from '$lib/book/ImagePicker.svelte';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 
 	let displayName = $state(untrack(() => (!data.locked && !data.closed ? data.prefillName : '')));
+	let avatarAssetId = $state('');
+	let photoAssetIds = $state<string[]>([]);
 
 	const closed = $derived(!data.locked && data.closed);
 	const questions = $derived('questions' in data && data.questions ? data.questions : []);
@@ -77,21 +80,32 @@
 		>
 			{#if message}<p class="formError">{message}</p>{/if}
 
+			<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
+			<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
+
 			<div class="spread">
 				<BookPage side="left">
 					<div class="sheet">
-						<label class="from">
-							<span class="label">Eintrag von</span>
-							<input
-								class="hand"
-								name="displayName"
-								required
-								maxlength="80"
-								bind:value={displayName}
-								readonly={!data.locked && !data.closed && data.lockName}
-								placeholder="dein Name"
+						<div class="head">
+							<label class="from">
+								<span class="label">Eintrag von</span>
+								<input
+									class="hand"
+									name="displayName"
+									required
+									maxlength="80"
+									bind:value={displayName}
+									readonly={!data.locked && !data.closed && data.lockName}
+									placeholder="dein Name"
+								/>
+							</label>
+							<ImagePicker
+								token={data.token}
+								kind="avatar"
+								variant="avatar"
+								bind:value={avatarAssetId}
 							/>
-						</label>
+						</div>
 						{#each leftQuestions as q (q.id)}
 							<label class="q">
 								<span class="label">{q.label}{q.required ? ' *' : ''}</span>
@@ -121,6 +135,15 @@
 								{/if}
 							</label>
 						{/each}
+						<div class="q">
+							<span class="label">Fotos</span>
+							<ImagePicker
+								token={data.token}
+								kind="photo"
+								variant="photos"
+								bind:value={photoAssetIds}
+							/>
+						</div>
 						<label class="q closing">
 							<span class="label">Grußformel</span>
 							<input name="closingLine" class="hand" maxlength="120" placeholder="Alles Liebe, …" />
@@ -191,6 +214,15 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.9rem;
+	}
+	.head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+	.head .from {
+		flex: 1;
 	}
 	.from,
 	.q {

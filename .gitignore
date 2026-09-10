@@ -11,6 +11,7 @@ dist
 
 # Local database (PGlite) & uploads
 /.pgdata
+/.uploads
 /data
 /uploads
 *.sqlite

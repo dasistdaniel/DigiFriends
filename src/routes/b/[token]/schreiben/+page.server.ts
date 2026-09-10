@@ -1,10 +1,10 @@
 import { fail } from '@sveltejs/kit';
-import { asc, eq, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { entry, entryAnswer, invite, question } from '$lib/server/db/schema';
+import { asset, entry, entryAnswer, invite, question } from '$lib/server/db/schema';
 import { newToken, hashToken } from '$lib/server/crypto';
 import { loadBookAccess, requireWrite } from '$lib/server/guard';
-import { ORIGIN } from '$lib/server/env';
+import { MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -76,6 +76,32 @@ export const actions: Actions = {
 			});
 		}
 
+		// hochgeladene Bilder validieren: gehören zum Buch, noch keinem Eintrag zugeordnet
+		const wantAvatar = String(fd.get('avatarAssetId') ?? '').trim();
+		const wantPhotos = String(fd.get('photoAssetIds') ?? '')
+			.split(',')
+			.map((s) => s.trim())
+			.filter(Boolean)
+			.slice(0, MAX_PHOTOS_PER_ENTRY);
+
+		const wantedIds = [...(wantAvatar ? [wantAvatar] : []), ...wantPhotos];
+		const ownAssets = wantedIds.length
+			? await db.query.asset.findMany({
+					where: and(
+						eq(asset.bookId, access.book.id),
+						isNull(asset.entryId),
+						inArray(asset.id, wantedIds)
+					)
+				})
+			: [];
+		const avatarId =
+			wantAvatar && ownAssets.some((a) => a.id === wantAvatar && a.kind === 'avatar')
+				? wantAvatar
+				: null;
+		const photoIds = wantPhotos.filter((id) =>
+			ownAssets.some((a) => a.id === id && a.kind === 'photo')
+		);
+
 		// personalisierte Einladung: Kontingent prüfen
 		if (access.inviteId) {
 			const inv = await db.query.invite.findFirst({ where: eq(invite.id, access.inviteId) });
@@ -111,7 +137,8 @@ export const actions: Actions = {
 					state: published ? 'published' : 'submitted',
 					publishedAt: published ? new Date() : null,
 					editTokenHash: hashToken(editToken),
-					editScope: 'link'
+					editScope: 'link',
+					avatarAssetId: avatarId
 				})
 				.returning({ id: entry.id });
 
@@ -124,6 +151,20 @@ export const actions: Actions = {
 						valueText: a.value
 					}))
 				);
+			}
+
+			// Bilder an den Eintrag binden (Polaroids mit leichter Zufallsdrehung)
+			if (avatarId) {
+				await tx.update(asset).set({ entryId: created.id }).where(eq(asset.id, avatarId));
+			}
+			for (let i = 0; i < photoIds.length; i++) {
+				await tx
+					.update(asset)
+					.set({
+						entryId: created.id,
+						position: { order: i, rotate: Math.round((Math.random() * 8 - 4) * 10) / 10 }
+					})
+					.where(eq(asset.id, photoIds[i]));
 			}
 		});
 

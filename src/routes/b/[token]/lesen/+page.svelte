@@ -23,7 +23,14 @@
 	}
 
 	let bookRef = $state<Book | undefined>();
+	let lightbox = $state<string | null>(null);
 </script>
+
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape') lightbox = null;
+	}}
+/>
 
 <svelte:head><title>{book?.title ?? 'Freundebuch'}</title></svelte:head>
 
@@ -81,9 +88,14 @@
 			<BookPage {side} number={i + 1}>
 				<div class="entry">
 					{#if side === 'left'}
-						<p class="entry__from label">
-							Eintrag von: <span class="hand">{e.displayName}</span>
-						</p>
+						<div class="entry__head">
+							<p class="entry__from label">
+								Eintrag von: <span class="hand">{e.displayName}</span>
+							</p>
+							{#if e.avatar}
+								<img class="entry__avatar" src={e.avatar.thumb} alt={`Foto von ${e.displayName}`} />
+							{/if}
+						</div>
 						<dl class="entry__qa">
 							{#each leftQuestions as q (q.id)}
 								<div>
@@ -93,6 +105,20 @@
 							{/each}
 						</dl>
 					{:else}
+						{#if e.photos.length}
+							<div class="polaroids">
+								{#each e.photos as photo (photo.id)}
+									<button
+										type="button"
+										class="polaroid"
+										style="--rot: {photo.rotate}deg"
+										onclick={() => (lightbox = photo.full)}
+									>
+										<img src={photo.thumb} alt={`Foto zum Eintrag von ${e.displayName}`} />
+									</button>
+								{/each}
+							</div>
+						{/if}
 						<dl class="entry__qa">
 							{#each rightQuestions as q (q.id)}
 								<div>
@@ -119,6 +145,14 @@
 			{page}
 		/>
 	</main>
+
+	{#if lightbox}
+		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+		<div class="lightbox" onclick={() => (lightbox = null)}>
+			<img src={lightbox} alt="Foto in groß" />
+			<button type="button" class="lightbox__x" aria-label="Schließen">×</button>
+		</div>
+	{/if}
 {/if}
 
 <style>
@@ -185,11 +219,80 @@
 		flex-direction: column;
 		height: 100%;
 	}
+	.entry__head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
 	.entry__from {
 		font-size: var(--step-1);
 		letter-spacing: 0.06em;
-		margin-bottom: 1rem;
 		color: var(--ink-700);
+	}
+	.entry__avatar {
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 3px solid #fffdf6;
+		box-shadow: 0 4px 12px -6px var(--shadow-page);
+		flex-shrink: 0;
+	}
+
+	.polaroids {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-bottom: 1.2rem;
+		align-self: flex-end;
+	}
+	.polaroid {
+		width: 5.2rem;
+		height: 6rem;
+		padding: 0.3rem 0.3rem 0.9rem;
+		background: #fffdf6;
+		border: 1px solid var(--paper-edge);
+		box-shadow: 0 6px 14px -8px var(--shadow-page);
+		transform: rotate(var(--rot, 0deg));
+		cursor: pointer;
+		display: grid;
+	}
+	.polaroid img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.lightbox {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		background: rgba(20, 12, 6, 0.86);
+		display: grid;
+		place-items: center;
+		padding: 24px;
+		cursor: zoom-out;
+	}
+	.lightbox img {
+		max-width: min(92vw, 900px);
+		max-height: 90vh;
+		border-radius: 4px;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+	}
+	.lightbox__x {
+		position: fixed;
+		top: 1rem;
+		right: 1.2rem;
+		width: 2.4rem;
+		height: 2.4rem;
+		border-radius: 50%;
+		border: 0;
+		background: rgba(255, 255, 255, 0.15);
+		color: #fff;
+		font-size: 1.4rem;
+		cursor: pointer;
 	}
 	.entry__from .hand {
 		text-transform: none;
