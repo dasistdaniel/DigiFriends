@@ -174,6 +174,10 @@
 
 <style>
 	.stage {
+		/* gemeinsame Bezugsgröße für Cover und aufgeschlagenes Buch */
+		--book-max: 60rem;
+		--spread-w: min(96vw, var(--book-max));
+
 		display: flex;
 		flex-direction: column;
 		align-items: center;
@@ -184,10 +188,12 @@
 	}
 
 	/* ---------------------------------------------------------------- Cover */
+	/* Geschlossen = eine Buchseite: gleiche Höhe wie das aufgeschlagene Buch,
+	   halbe Breite der Doppelseite. */
 	.cover {
 		position: relative;
-		width: min(78vw, 340px);
-		aspect-ratio: 5 / 7;
+		width: min(92vw, 30rem);
+		aspect-ratio: 1 / 1.34;
 		border: 0;
 		padding: 0;
 		cursor: pointer;
@@ -207,6 +213,11 @@
 	.cover:focus-visible {
 		transform: translateY(-3px) rotate(-0.4deg);
 		box-shadow: 0 34px 60px -18px var(--shadow-book);
+	}
+	@media (min-width: 900px) {
+		.cover {
+			width: calc(var(--spread-w) / 2);
+		}
 	}
 	.cover__spine {
 		position: absolute;
@@ -228,25 +239,25 @@
 	}
 	.cover__plate {
 		position: absolute;
-		inset: 14% 14% auto;
+		inset: 16% 12% auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.5rem;
-		padding: 1.4rem 1rem;
+		gap: 0.6rem;
+		padding: clamp(1.4rem, 1rem + 3vw, 2.4rem) 1.2rem;
 		border: 1px solid rgba(247, 241, 225, 0.35);
 		border-radius: 4px;
 	}
 	.cover__ornament {
-		font-size: 1.3rem;
+		font-size: 1.5rem;
 		opacity: 0.8;
 	}
 	.cover__title {
 		font-family: var(--font-hand);
-		font-size: var(--step-2);
+		font-size: var(--step-3);
 		font-weight: 700;
 		text-align: center;
-		line-height: 1.15;
+		line-height: 1.1;
 	}
 	.cover__subtitle {
 		font-family: var(--font-label);
@@ -269,7 +280,7 @@
 	/* ----------------------------------------------------------------- Book */
 	.book {
 		position: relative;
-		width: min(96vw, 60rem);
+		width: var(--spread-w);
 	}
 	.book__spread {
 		position: relative;
