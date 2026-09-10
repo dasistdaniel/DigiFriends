@@ -5,13 +5,27 @@
 
 	let { data, form }: PageProps = $props();
 
-	let selectedTemplate = $state(untrack(() => data.defaultTemplateId));
-	let showAdvanced = $state(false);
+	const initial = untrack(() =>
+		form && 'values' in form ? (form.values as Record<string, string>) : {}
+	);
+
+	let title = $state(initial.title ?? '');
+	let subtitle = $state(initial.subtitle ?? '');
+	let introText = $state(initial.introText ?? '');
+	let moderationMode = $state(initial.moderationMode ?? 'instant');
+	let passwordAdmin = $state(initial.passwordAdmin ?? '');
+	let passwordWrite = $state(initial.passwordWrite ?? '');
+	let passwordRead = $state(initial.passwordRead ?? '');
+	let recoveryEmail = $state(initial.recoveryEmail ?? '');
+
+	let selectedTemplate = $state(untrack(() => initial.templateId || data.defaultTemplateId));
+	let showAdvanced = $state(
+		untrack(() => Boolean(initial.passwordAdmin || initial.passwordWrite || initial.passwordRead))
+	);
 	let submitting = $state(false);
 	let copied = $state<string | null>(null);
 
 	const errors = $derived((form && 'errors' in form ? form.errors : undefined) ?? {});
-	const values = $derived((form && 'values' in form ? form.values : undefined) ?? {});
 
 	async function copy(key: string, value: string) {
 		try {
@@ -87,7 +101,7 @@
 				use:enhance={() => {
 					submitting = true;
 					return async ({ update }) => {
-						await update();
+						await update({ reset: false });
 						submitting = false;
 					};
 				}}
@@ -98,7 +112,7 @@
 						name="title"
 						required
 						maxlength="120"
-						value={values.title ?? ''}
+						bind:value={title}
 						placeholder="z. B. Unser Freundebuch"
 					/>
 					{#if errors.title}<span class="err">{errors.title[0]}</span>{/if}
@@ -109,7 +123,7 @@
 					<input
 						name="subtitle"
 						maxlength="120"
-						value={values.subtitle ?? ''}
+						bind:value={subtitle}
 						placeholder="z. B. Sommer 2026"
 					/>
 				</label>
@@ -120,9 +134,8 @@
 						name="introText"
 						rows="4"
 						maxlength="2000"
-						placeholder="Steht auf der ersten Seite, wenn man das Buch aufschlägt."
-						>{values.introText ?? ''}</textarea
-					>
+						bind:value={introText}
+						placeholder="Steht auf der ersten Seite, wenn man das Buch aufschlägt."></textarea>
 				</label>
 
 				<fieldset class="field">
@@ -147,11 +160,11 @@
 				<fieldset class="field">
 					<legend class="label">Neue Einträge</legend>
 					<label class="radio">
-						<input type="radio" name="moderationMode" value="instant" checked />
+						<input type="radio" name="moderationMode" value="instant" bind:group={moderationMode} />
 						<span>Sofort im Buch sichtbar</span>
 					</label>
 					<label class="radio">
-						<input type="radio" name="moderationMode" value="review" />
+						<input type="radio" name="moderationMode" value="review" bind:group={moderationMode} />
 						<span>Erst nach meiner Freigabe</span>
 					</label>
 				</fieldset>
@@ -176,7 +189,7 @@
 								name="passwordAdmin"
 								type="text"
 								autocomplete="off"
-								value={values.passwordAdmin ?? ''}
+								bind:value={passwordAdmin}
 							/>
 							{#if errors.passwordAdmin}<span class="err">{errors.passwordAdmin[0]}</span>{/if}
 						</label>
@@ -186,18 +199,13 @@
 								name="passwordWrite"
 								type="text"
 								autocomplete="off"
-								value={values.passwordWrite ?? ''}
+								bind:value={passwordWrite}
 							/>
 							{#if errors.passwordWrite}<span class="err">{errors.passwordWrite[0]}</span>{/if}
 						</label>
 						<label class="field">
 							<span class="label">Passwort Ansehen-Link</span>
-							<input
-								name="passwordRead"
-								type="text"
-								autocomplete="off"
-								value={values.passwordRead ?? ''}
-							/>
+							<input name="passwordRead" type="text" autocomplete="off" bind:value={passwordRead} />
 							{#if errors.passwordRead}<span class="err">{errors.passwordRead[0]}</span>{/if}
 						</label>
 						<label class="field">
@@ -205,7 +213,7 @@
 							<input
 								name="recoveryEmail"
 								type="email"
-								value={values.recoveryEmail ?? ''}
+								bind:value={recoveryEmail}
 								placeholder="fuer den Fall, dass du den Admin-Link verlierst"
 							/>
 							{#if errors.recoveryEmail}<span class="err">{errors.recoveryEmail[0]}</span>{/if}

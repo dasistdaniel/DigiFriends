@@ -3,12 +3,11 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>{data.book.title}</title></svelte:head>
+<svelte:head><title>{data.bookTitle}</title></svelte:head>
 
 <main>
 	<p class="label">Leseansicht</p>
-	<h1>{data.book.title}</h1>
-	{#if data.book.subtitle}<p class="sub">{data.book.subtitle}</p>{/if}
+	<h1>{data.bookTitle}</h1>
 	<p class="todo">Die Buch-Leseansicht mit echten Einträgen folgt als nächster Schritt.</p>
 </main>
 
@@ -21,9 +20,6 @@
 	h1 {
 		font-family: var(--font-hand);
 		font-size: var(--step-3);
-	}
-	.sub {
-		color: var(--ink-500);
 	}
 	.todo {
 		margin-top: 2rem;

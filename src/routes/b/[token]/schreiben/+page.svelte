@@ -3,15 +3,18 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>{data.book.title} · eintragen</title></svelte:head>
+<svelte:head><title>{data.bookTitle} · eintragen</title></svelte:head>
 
-<main>
-	<p class="label">Eintragen</p>
-	<h1>{data.book.title}</h1>
-	<p class="todo">
-		Die Schreibansicht (Doppelseite mit Feldern, Avatar, Fotos) folgt als nächster Schritt.
-	</p>
-</main>
+{#if data.book}
+	<main>
+		<p class="label">Eintragen</p>
+		<h1>{data.book.title}</h1>
+		{#if data.prefillName}<p>Eingeladen als: <strong>{data.prefillName}</strong></p>{/if}
+		<p class="todo">
+			Die Schreibansicht (Doppelseite mit Feldern, Avatar, Fotos) folgt als nächster Schritt.
+		</p>
+	</main>
+{/if}
 
 <style>
 	main {

@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from './db';
 import { book, bookAccess, invite, question, type Book } from './db/schema';
-import { hashPassword, hashToken, newToken } from './crypto';
+import { hashPassword, hashToken, newToken, verifyPassword } from './crypto';
 import { getTemplate } from '$lib/templates';
 
 export type CreateBookInput = {
@@ -84,26 +84,76 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 	return { bookId, tokens };
 }
 
-export type AccessRole = 'admin' | 'read';
+export type LinkRole = 'admin' | 'read' | 'write';
 
 export type BookAccessResult = {
 	book: Book;
-	role: AccessRole;
+	role: LinkRole;
+	/** id des book_access- bzw. invite-Datensatzes (für den Entsperrt-Cookie) */
 	accessId: string;
 	hasPassword: boolean;
+	/** bei role === 'write' die zugehörige Einladung */
+	inviteId?: string;
+	invitePrefillName?: string | null;
 };
 
-/** Löst einen Admin-/Ansehen-Token zu Buch + Rolle auf. */
+/**
+ * Löst einen Buch-Link-Token auf – egal ob Admin-/Ansehen-Link (book_access)
+ * oder Eintragen-Link (invite). Gibt null zurück, wenn der Token unbekannt oder
+ * die Einladung zurückgezogen ist.
+ */
 export async function resolveAccess(token: string): Promise<BookAccessResult | null> {
-	const row = await db.query.bookAccess.findFirst({
-		where: eq(bookAccess.tokenHash, hashToken(token)),
+	const tokenHash = hashToken(token);
+
+	const accessRow = await db.query.bookAccess.findFirst({
+		where: eq(bookAccess.tokenHash, tokenHash),
 		with: { book: true }
 	});
-	if (!row || !row.book) return null;
-	return {
-		book: row.book,
-		role: row.role,
-		accessId: row.id,
-		hasPassword: row.passwordHash !== null
-	};
+	if (accessRow?.book) {
+		return {
+			book: accessRow.book,
+			role: accessRow.role,
+			accessId: accessRow.id,
+			hasPassword: accessRow.passwordHash !== null
+		};
+	}
+
+	const inviteRow = await db.query.invite.findFirst({
+		where: eq(invite.tokenHash, tokenHash),
+		with: { book: true }
+	});
+	if (inviteRow?.book && inviteRow.revokedAt === null) {
+		return {
+			book: inviteRow.book,
+			role: 'write',
+			accessId: inviteRow.id,
+			hasPassword: inviteRow.passwordHash !== null,
+			inviteId: inviteRow.id,
+			invitePrefillName: inviteRow.prefillName
+		};
+	}
+
+	return null;
+}
+
+/** Prüft das Link-Passwort für einen beliebigen Buch-Link-Token. */
+export async function verifyAccessPassword(token: string, password: string): Promise<boolean> {
+	const tokenHash = hashToken(token);
+
+	const accessRow = await db.query.bookAccess.findFirst({
+		where: eq(bookAccess.tokenHash, tokenHash),
+		columns: { passwordHash: true }
+	});
+	const hash =
+		accessRow?.passwordHash ??
+		(
+			await db.query.invite.findFirst({
+				where: eq(invite.tokenHash, tokenHash),
+				columns: { passwordHash: true }
+			})
+		)?.passwordHash;
+
+	if (hash === undefined) return false;
+	if (hash === null) return true;
+	return verifyPassword(hash, password);
 }

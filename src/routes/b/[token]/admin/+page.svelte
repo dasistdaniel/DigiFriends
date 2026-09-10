@@ -4,20 +4,26 @@
 	let { data }: PageProps = $props();
 </script>
 
-<svelte:head><title>{data.book.title} · verwalten</title></svelte:head>
+<svelte:head><title>{data.book?.title ?? 'Buch'} · verwalten</title></svelte:head>
 
-<main>
-	<p class="label">Admin-Bereich</p>
-	<h1>{data.book.title}</h1>
-	<ul>
-		<li>Vorlage: {data.book.moderationMode === 'review' ? 'Freigabe nötig' : 'sofort sichtbar'}</li>
-		<li>Status: {data.book.status}</li>
-	</ul>
-	<p><a href={resolve('/b/[token]/lesen', { token: data.token })}>Buch ansehen</a></p>
-	<p class="todo">
-		Fragen-Editor, Design-Optionen, Einträge-Moderation und Link-Verwaltung folgen.
-	</p>
-</main>
+{#if data.book}
+	<main>
+		<p class="label">Admin-Bereich</p>
+		<h1>{data.book.title}</h1>
+		<ul>
+			<li>
+				Neue Einträge: {data.book.moderationMode === 'review'
+					? 'Freigabe nötig'
+					: 'sofort sichtbar'}
+			</li>
+			<li>Status: {data.book.status}</li>
+		</ul>
+		<p><a href={resolve('/b/[token]/lesen', { token: data.token })}>Buch ansehen</a></p>
+		<p class="todo">
+			Fragen-Editor, Design-Optionen, Einträge-Moderation und Link-Verwaltung folgen.
+		</p>
+	</main>
+{/if}
 
 <style>
 	main {
