@@ -10,7 +10,7 @@ node_modules
 dist
 
 # Local database (PGlite) & uploads
-/.data
+/.pgdata
 /data
 /uploads
 *.sqlite
