@@ -6,22 +6,25 @@
 	let {
 		title,
 		subtitle,
-		pages,
+		pageCount,
+		page,
 		open = $bindable(false),
 		startPage = 0,
 		onnavigate
 	}: {
 		title: string;
 		subtitle?: string;
-		/** Innenseiten ab der ersten linken Seite nach dem Aufschlagen */
-		pages: Snippet[];
+		/** Anzahl der Innenseiten ab der ersten linken Seite nach dem Aufschlagen */
+		pageCount: number;
+		/** rendert die Innenseite mit gegebenem Index */
+		page: Snippet<[number]>;
 		open?: boolean;
 		startPage?: number;
 		onnavigate?: (leaf: number) => void;
 	} = $props();
 
 	function clamp(n: number) {
-		return Math.max(0, Math.min(n, Math.max(0, pages.length - 1)));
+		return Math.max(0, Math.min(n, Math.max(0, pageCount - 1)));
 	}
 
 	// startPage nur als Startwert übernehmen, danach lokal steuern
@@ -32,11 +35,11 @@
 
 	const viewStart = $derived(perView === 2 ? leaf - (leaf % 2) : leaf);
 	const visible = $derived(
-		Array.from({ length: perView }, (_, i) => viewStart + i).filter((i) => i < pages.length)
+		Array.from({ length: perView }, (_, i) => viewStart + i).filter((i) => i < pageCount)
 	);
 	const atStart = $derived(viewStart <= 0);
-	const atEnd = $derived(viewStart + perView >= pages.length);
-	const totalSpreads = $derived(Math.ceil(pages.length / perView));
+	const atEnd = $derived(viewStart + perView >= pageCount);
+	const totalSpreads = $derived(Math.ceil(pageCount / perView));
 	const currentSpread = $derived(Math.floor(viewStart / perView) + 1);
 	const dur = $derived(reduced ? 0 : 340);
 
@@ -128,7 +131,7 @@
 						out:fly={{ x: dir * -40, duration: dur, easing: cubicOut, opacity: 0 }}
 					>
 						{#each visible as pageIndex (pageIndex)}
-							{@render pages[pageIndex]()}
+							{@render page(pageIndex)}
 						{/each}
 						{#if perView === 2 && visible.length === 1}
 							<div class="book__blank" aria-hidden="true"></div>

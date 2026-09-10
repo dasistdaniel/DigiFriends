@@ -108,12 +108,20 @@
 	</BookPage>
 {/snippet}
 
+{#snippet page(i: number)}
+	{#if i === 0}
+		{@render intro()}
+	{:else if i === 1}
+		{@render contents()}
+	{:else if i === 2}
+		{@render entryLeft()}
+	{:else}
+		{@render entryRight()}
+	{/if}
+{/snippet}
+
 <main>
-	<Book
-		title="Unser Freundebuch"
-		subtitle="Sommer 2026"
-		pages={[intro, contents, entryLeft, entryRight]}
-	/>
+	<Book title="Unser Freundebuch" subtitle="Sommer 2026" pageCount={4} {page} />
 </main>
 
 <style>
