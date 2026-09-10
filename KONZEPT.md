@@ -33,11 +33,11 @@ Ansehen), jeweils optional mit Passwort. Läuft als Docker-Setup auf einem eigen
 Beim Anlegen eines Buchs werden nicht erratbare Links erzeugt (je ein langes
 Zufalls-Token). Jeder Link kann zusätzlich mit einem eigenen Passwort geschützt werden.
 
-| Link | Darf | Darf nicht |
-|---|---|---|
-| **Admin** `/b/<token>/admin` | Buch konfigurieren, Fragen & Vorlage bearbeiten, Design wählen, Einträge moderieren / bearbeiten / löschen / sortieren, Links & Passwörter verwalten, Export, Buch archivieren/löschen | — |
-| **Eintragen** `/b/<token>/schreiben` · `/e/<einladungs-token>` | Buch lesen (inkl. bereits veröffentlichter Einträge), einen Eintrag erstellen und ihn später über den eigenen Bearbeitungs-Link ändern | Einstellungen ändern, fremde Einträge bearbeiten, noch nicht freigegebene Einträge anderer sehen |
-| **Ansehen** `/b/<token>/lesen` | Nur lesen & blättern, Zeichnungen/Fotos vergrößern | Eintragen, irgendetwas ändern |
+| Link                                                           | Darf                                                                                                                                                                                   | Darf nicht                                                                                       |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Admin** `/b/<token>/admin`                                   | Buch konfigurieren, Fragen & Vorlage bearbeiten, Design wählen, Einträge moderieren / bearbeiten / löschen / sortieren, Links & Passwörter verwalten, Export, Buch archivieren/löschen | —                                                                                                |
+| **Eintragen** `/b/<token>/schreiben` · `/e/<einladungs-token>` | Buch lesen (inkl. bereits veröffentlichter Einträge), einen Eintrag erstellen und ihn später über den eigenen Bearbeitungs-Link ändern                                                 | Einstellungen ändern, fremde Einträge bearbeiten, noch nicht freigegebene Einträge anderer sehen |
+| **Ansehen** `/b/<token>/lesen`                                 | Nur lesen & blättern, Zeichnungen/Fotos vergrößern                                                                                                                                     | Eintragen, irgendetwas ändern                                                                    |
 
 ### Einladungslinks zum Eintragen
 
@@ -155,8 +155,8 @@ umformulieren, löschen, neu sortieren, neue Fragen hinzufügen, Feldtyp wählen
 - Wenn du im Lotto gewinnst, wohin reisen wir?
 - Alles Liebe, dein/e \_\_
 
-Weitere Vorlagen als Startset: *Klassik / Kindheit*, *Abschied Kolleg:in*,
-*Hochzeit / Gästebuch*, *Ruhestand*, *Abi / Schulabschluss*.
+Weitere Vorlagen als Startset: _Klassik / Kindheit_, _Abschied Kolleg:in_,
+_Hochzeit / Gästebuch_, _Ruhestand_, _Abi / Schulabschluss_.
 
 ### Dynamisches Seitenlayout
 
@@ -209,7 +209,7 @@ Session-Cookie gesetzt. Es gibt bewusst kein zentrales User-Management.
 
 Angelehnt an das Mockup: gealtertes cremefarbenes Papier, sepia-goldene Illustrationen
 (Blätter, Bäume, Kaffeetassen, Kompass, Hände), Handschrift-/Versalien-Typografie für
-Fragen, brauner Ledereinband mit sichtbarer Bindung. Ziel ist ein *Keepsake*-Gefühl,
+Fragen, brauner Ledereinband mit sichtbarer Bindung. Ziel ist ein _Keepsake_-Gefühl,
 kein „Web-Formular".
 
 ### Assets & Illustrationen
@@ -245,16 +245,16 @@ Begründung: eine Codebasis, kleine Runtime (gut für einen 1–2 vCPU-VPS), seh
 geeignet für die animierten Buch-Interaktionen. Next.js/Nuxt wären gleichwertige
 Alternativen, falls im Team mehr Erfahrung damit besteht.
 
-| Baustein | Wahl | Zweck |
-|---|---|---|
-| Web-App | SvelteKit (Node-Adapter) | Buch-UI, Schreibansicht, Admin, API-Routen |
-| Datenbank | PostgreSQL 16 | Bücher, Fragen, Einträge, Tokens |
-| Dateien | Volume `/data/uploads` (opt. MinIO) | Originalbilder, Thumbnails, Zeichnungen (PNG/SVG) |
-| Bildverarbeitung | `sharp` | Resize, Thumbnails, EXIF-Strip, WebP |
-| Zugriffsschutz Bilder | signierte URLs / Auslieferung durch die App | Bilder nur mit gültigem Buch-Token abrufbar |
-| Reverse Proxy | Caddy | TLS (Let's Encrypt), Kompression, Static-Cache |
-| Mailversand | siehe 12 | nur Admin-Wiederherstellung & opt. Moderations-Hinweis |
-| Backups | Cron: `pg_dump` + Uploads-Sync | tägliche Sicherung, off-site kopieren |
+| Baustein              | Wahl                                        | Zweck                                                  |
+| --------------------- | ------------------------------------------- | ------------------------------------------------------ |
+| Web-App               | SvelteKit (Node-Adapter)                    | Buch-UI, Schreibansicht, Admin, API-Routen             |
+| Datenbank             | PostgreSQL 16                               | Bücher, Fragen, Einträge, Tokens                       |
+| Dateien               | Volume `/data/uploads` (opt. MinIO)         | Originalbilder, Thumbnails, Zeichnungen (PNG/SVG)      |
+| Bildverarbeitung      | `sharp`                                     | Resize, Thumbnails, EXIF-Strip, WebP                   |
+| Zugriffsschutz Bilder | signierte URLs / Auslieferung durch die App | Bilder nur mit gültigem Buch-Token abrufbar            |
+| Reverse Proxy         | Caddy                                       | TLS (Let's Encrypt), Kompression, Static-Cache         |
+| Mailversand           | siehe 12                                    | nur Admin-Wiederherstellung & opt. Moderations-Hinweis |
+| Backups               | Cron: `pg_dump` + Uploads-Sync              | tägliche Sicherung, off-site kopieren                  |
 
 **Container (docker compose):** `app` (SvelteKit-Server) · `db` (PostgreSQL mit eigenem
 Volume) · `proxy` (Caddy, Ports 80/443) · `backup` (kleiner Cron-Container, optional) ·
@@ -262,17 +262,17 @@ optional `minio` (falls Objektspeicher statt Volume).
 
 ## 11 · Datenmodell (Skizze)
 
-| Tabelle | Wichtige Felder |
-|---|---|
-| `book` | id, title, subtitle, intro_text, design (jsonb: cover, papier, ornamente), moderation_mode (`instant \| review`), status (`open \| closed \| archived`), recovery_email (nullable), created_at |
-| `book_access` | book_id, role (`admin \| read`), token_hash, password_hash (nullable), created_at – Basis-Links des Buchs |
-| `invite` | id, book_id, label (z. B. „für Anna"), kind (`open \| personal`), token_hash, password_hash (nullable), prefill_name (nullable), max_entries (default 1 bei personal, null bei open), used_count, revoked_at (nullable), created_at |
-| `question` | id, book_id, position, label, field_type (`short \| long \| date`), required, section (`left \| right`) |
-| `entry` | id, book_id, invite_id (nullable), display_name, position, state (`draft \| submitted \| published \| hidden`), edit_token_hash, edit_scope (`personal \| link`), avatar_asset_id, drawing_asset_id, closing_line, created_at, published_at |
-| `entry_answer` | entry_id, question_id, value_text |
-| `asset` | id, book_id, entry_id, kind (`avatar \| drawing \| photo`), path, thumb_path, width, height, alt_text, position (jsonb: Rotation/Offset für Polaroids) |
-| `recovery_request` | book_id, token_hash, expires_at, used_at |
-| `audit_log` | book_id, actor_role, action, meta, created_at |
+| Tabelle            | Wichtige Felder                                                                                                                                                                                                                             |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `book`             | id, title, subtitle, intro_text, design (jsonb: cover, papier, ornamente), moderation_mode (`instant \| review`), status (`open \| closed \| archived`), recovery_email (nullable), created_at                                              |
+| `book_access`      | book_id, role (`admin \| read`), token_hash, password_hash (nullable), created_at – Basis-Links des Buchs                                                                                                                                   |
+| `invite`           | id, book_id, label (z. B. „für Anna"), kind (`open \| personal`), token_hash, password_hash (nullable), prefill_name (nullable), max_entries (default 1 bei personal, null bei open), used_count, revoked_at (nullable), created_at         |
+| `question`         | id, book_id, position, label, field_type (`short \| long \| date`), required, section (`left \| right`)                                                                                                                                     |
+| `entry`            | id, book_id, invite_id (nullable), display_name, position, state (`draft \| submitted \| published \| hidden`), edit_token_hash, edit_scope (`personal \| link`), avatar_asset_id, drawing_asset_id, closing_line, created_at, published_at |
+| `entry_answer`     | entry_id, question_id, value_text                                                                                                                                                                                                           |
+| `asset`            | id, book_id, entry_id, kind (`avatar \| drawing \| photo`), path, thumb_path, width, height, alt_text, position (jsonb: Rotation/Offset für Polaroids)                                                                                      |
+| `recovery_request` | book_id, token_hash, expires_at, used_at                                                                                                                                                                                                    |
+| `audit_log`        | book_id, actor_role, action, meta, created_at                                                                                                                                                                                               |
 
 Tokens werden nie im Klartext gespeichert, nur als Hash. Der Klartext steht
 ausschließlich im Link.
@@ -312,7 +312,7 @@ Buch-Cookie/Token prüft. Uploads: MIME- & Magic-Byte-Prüfung, Re-Encoding mit 
 
 E-Mail wird nur selten gebraucht (Wiederherstellung, optionaler Moderations-Hinweis).
 **Primär:** ein transaktionaler Dienst mit EU-Rechenzentrum und AV-Vertrag – z. B.
-*Brevo*, *Mailjet* oder *Postmark (EU)* – angebunden per SMTP. **Alternativ / Fallback:**
+_Brevo_, _Mailjet_ oder _Postmark (EU)_ – angebunden per SMTP. **Alternativ / Fallback:**
 generische SMTP-Konfiguration, sodass auch ein eigener Mailserver oder der des
 VPS-Anbieters genutzt werden kann. Konfiguration rein über Umgebungsvariablen; ist keine
 gesetzt, wird die E-Mail-Wiederherstellung im UI ausgeblendet.
@@ -338,11 +338,11 @@ gesetzt, wird die E-Mail-Wiederherstellung im UI ausgeblendet.
 
 ## 14 · Umsetzung in Stufen
 
-| Stufe | Inhalt |
-|---|---|
-| **MVP** | Buch anlegen · Admin- / Ansehen- / offener Eintragen-Link (ohne Passwort) · 1 feste Vorlage · Leseansicht mit sanftem Blättern · Inhaltsverzeichnis · Eintrag mit Textfeldern + Avatar + Polaroid-Fotos + Lightbox · veröffentlichte Einträge für Schreibende sichtbar · Moderation „sofort/Freigabe" · Admin: Einträge sehen/löschen · Docker-Setup + Caddy + Backups |
-| **V1** | Mini-Zeichnen-Canvas · mehrere Vorlagen · voll editierbare Fragen + dynamisches Seitenlayout · personalisierte Einladungslinks + Übersicht · Passwörter pro Link · E-Mail-Wiederherstellung · Design-Optionen (Cover/Papier/Ornamente) · persönlicher Bearbeitungs-Link · PDF/ZIP-Export · Barrierefreie Listenansicht |
-| **Später** | Realistisches 3D-Blättern (StPageFlip) · Blätter-Sound · Buch-Lebenszyklus/Auto-Löschung · weitere Sprachen · Kinder-Variante mit Einwilligungskonzept · gemeinsame „Gruppenseiten" |
+| Stufe      | Inhalt                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **MVP**    | Buch anlegen · Admin- / Ansehen- / offener Eintragen-Link (ohne Passwort) · 1 feste Vorlage · Leseansicht mit sanftem Blättern · Inhaltsverzeichnis · Eintrag mit Textfeldern + Avatar + Polaroid-Fotos + Lightbox · veröffentlichte Einträge für Schreibende sichtbar · Moderation „sofort/Freigabe" · Admin: Einträge sehen/löschen · Docker-Setup + Caddy + Backups |
+| **V1**     | Mini-Zeichnen-Canvas · mehrere Vorlagen · voll editierbare Fragen + dynamisches Seitenlayout · personalisierte Einladungslinks + Übersicht · Passwörter pro Link · E-Mail-Wiederherstellung · Design-Optionen (Cover/Papier/Ornamente) · persönlicher Bearbeitungs-Link · PDF/ZIP-Export · Barrierefreie Listenansicht                                                 |
+| **Später** | Realistisches 3D-Blättern (StPageFlip) · Blätter-Sound · Buch-Lebenszyklus/Auto-Löschung · weitere Sprachen · Kinder-Variante mit Einwilligungskonzept · gemeinsame „Gruppenseiten"                                                                                                                                                                                    |
 
 ## 15 · Offene Punkte
 
@@ -362,5 +362,5 @@ Einträge sind für Schreibende sichtbar.
 
 ---
 
-*Quellen: `idee.md`, KI-Mockup „Digitales Freundebuch für Erwachsene" (Stilreferenz).*
-*Nächster Schritt: offene Punkte klären, dann MVP-Scope schneiden.*
+_Quellen: `idee.md`, KI-Mockup „Digitales Freundebuch für Erwachsene" (Stilreferenz)._
+_Nächster Schritt: offene Punkte klären, dann MVP-Scope schneiden._

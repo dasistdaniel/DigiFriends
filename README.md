@@ -12,8 +12,24 @@ einem VPS.
 
 ## Status
 
-Konzeptphase. Noch kein Code.
+Frühe Entwicklung. Scaffold steht, Features folgen entlang der Roadmap in `KONZEPT.md` (§14).
 
-## Geplanter Stack
+## Stack
 
-SvelteKit · PostgreSQL · Drizzle ORM · `sharp` · Caddy · Docker Compose
+SvelteKit (Svelte 5) · TypeScript · `@sveltejs/adapter-node` · Drizzle ORM ·
+PostgreSQL (Produktion) / PGlite (lokal, ohne Installation) · `sharp` · Caddy · Docker Compose
+
+## Entwicklung
+
+```sh
+npm install
+cp .env.example .env      # Standardwerte laufen lokal ohne Anpassung
+npm run db:push           # Schema in die lokale DB schreiben
+npm run dev
+```
+
+Weitere Skripte: `npm run check`, `npm run lint`, `npm run format`, `npm test`.
+
+## Deployment
+
+Siehe [`docs/deployment.md`](./docs/deployment.md) (folgt) – `docker compose up -d` auf einem EU-VPS.

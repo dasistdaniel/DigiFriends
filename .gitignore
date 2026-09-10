@@ -1,44 +1,46 @@
-# Dependencies
-node_modules/
-.pnp/
-.pnp.js
+node_modules
 
-# Build output
-build/
-dist/
-.svelte-kit/
-.output/
-.vercel/
-.netlify/
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+dist
 
-# Environment
+# Local database (PGlite) & uploads
+/.data
+/data
+/uploads
+*.sqlite
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea
+.vscode/*
+!.vscode/extensions.json
+
+# Env
 .env
 .env.*
 !.env.example
+!.env.test
 
-# Runtime data / uploads
-data/
-uploads/
-*.sqlite
-*.db
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
 # Logs
 *.log
 npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# OS / Editor
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/*
-!.vscode/extensions.json
 
 # Docker
 docker-compose.override.yml
 
-# Coverage / test
-coverage/
-.nyc_output/
+# Test / coverage
+coverage
