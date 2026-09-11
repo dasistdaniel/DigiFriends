@@ -2,7 +2,34 @@
 	import Book from '$lib/book/Book.svelte';
 	import BookPage from '$lib/book/BookPage.svelte';
 
-	// Demo-Inhalt zum Entwickeln der Buch-Optik – noch keine echten Daten.
+	// Demo-Inhalt zum Zeigen der Buch-Optik – keine echten Nutzerdaten.
+	// Platzhalterbilder sind selbst gezeichnete SVGs (kein Fremdmaterial),
+	// damit die Demo zeigt, wie Avatar/Fotos im echten Buch aussehen.
+	function svg(markup: string) {
+		return `data:image/svg+xml;utf8,${encodeURIComponent(markup)}`;
+	}
+
+	const avatar = svg(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+		<circle cx='50' cy='50' r='50' fill='#6f7d5f'/>
+		<text x='50' y='64' font-family='Georgia, serif' font-size='38' fill='#f7f1e1' text-anchor='middle'>AB</text>
+	</svg>`);
+
+	const photoSunrise = svg(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+		<rect width='200' height='200' fill='#f0e2c0'/>
+		<circle cx='142' cy='58' r='26' fill='#d99a3f'/>
+		<polygon points='0,200 55,95 95,150 135,80 200,200' fill='#7a5a3a'/>
+		<polygon points='0,200 55,95 82,138 55,200' fill='#5c4128' opacity='0.55'/>
+	</svg>`);
+
+	const photoCoffee = svg(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
+		<rect width='200' height='200' fill='#ece2c8'/>
+		<path d='M55 95h50v38a25 25 0 0 1-50 0z' fill='#6e2f2a'/>
+		<path d='M105 100c14-2 22 6 20 16s-14 12-20 10' fill='none' stroke='#6e2f2a' stroke-width='6'/>
+		<path d='M115 95h50v30a25 25 0 0 1-50 0z' fill='#a9762c'/>
+		<path d='M165 98c12-2 19 5 17 14s-12 10-17 8' fill='none' stroke='#a9762c' stroke-width='6'/>
+		<path d='M70 82c4-8-4-10 0-18M180 80c4-8-4-10 0-18' stroke='#8a7f6d' stroke-width='4' fill='none' stroke-linecap='round'/>
+	</svg>`);
+
 	const toc = [
 		{ name: 'Anna Berger', page: 1 },
 		{ name: 'Jonas Klein', page: 2 },
@@ -42,7 +69,20 @@
 			a: 'Ans Nordkap, mit einem viel zu großen Camper.'
 		}
 	];
+
+	const photos = [
+		{ id: 'sunrise', src: photoSunrise, rotate: -3 },
+		{ id: 'coffee', src: photoCoffee, rotate: 2.5 }
+	];
+
+	let lightbox = $state<string | null>(null);
 </script>
+
+<svelte:window
+	onkeydown={(e) => {
+		if (e.key === 'Escape') lightbox = null;
+	}}
+/>
 
 {#snippet intro()}
 	<BookPage side="left" number={1}>
@@ -50,7 +90,7 @@
 			<h2 class="reading__title">Willkommen</h2>
 			<p>
 				Dieses Buch gehört uns allen. Trag dich ein, wie du magst – ehrlich, albern, ausführlich
-				oder in drei Sätzen. Ein Foto, eine Zeichnung, eine Erinnerung: alles darf hier hinein.
+				oder in drei Sätzen. Ein Foto, ein Avatar, eine Erinnerung: alles darf hier hinein.
 			</p>
 			<p>Blättere rechts weiter zum Inhaltsverzeichnis und schau, wer schon da war.</p>
 			<p class="reading__sign hand">— Anna &amp; Jonas</p>
@@ -78,7 +118,10 @@
 {#snippet entryLeft()}
 	<BookPage side="left" number={3}>
 		<div class="entry">
-			<p class="entry__from label">Eintrag von: <span class="hand">Anna Berger</span></p>
+			<div class="entry__head">
+				<p class="entry__from label">Eintrag von: <span class="hand">Anna Berger</span></p>
+				<img class="entry__avatar" src={avatar} alt="Avatar von Anna Berger" />
+			</div>
 			<dl class="entry__qa">
 				{#each questionsLeft as item (item.q)}
 					<div>
@@ -94,7 +137,18 @@
 {#snippet entryRight()}
 	<BookPage side="right" number={4}>
 		<div class="entry">
-			<div class="polaroid" aria-hidden="true"><span>Foto</span></div>
+			<div class="polaroids">
+				{#each photos as photo (photo.id)}
+					<button
+						type="button"
+						class="polaroid"
+						style="--rot: {photo.rotate}deg"
+						onclick={() => (lightbox = photo.src)}
+					>
+						<img src={photo.src} alt="Foto-Erinnerung (Demo)" />
+					</button>
+				{/each}
+			</div>
 			<dl class="entry__qa">
 				{#each questionsRight as item (item.q)}
 					<div>
@@ -123,6 +177,14 @@
 <main>
 	<Book title="Unser Freundebuch" subtitle="Sommer 2026" pageCount={4} {page} />
 </main>
+
+{#if lightbox}
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+	<div class="lightbox" onclick={() => (lightbox = null)}>
+		<img src={lightbox} alt="Foto in groß (Demo)" />
+		<button type="button" class="lightbox__x" aria-label="Schließen">×</button>
+	</div>
+{/if}
 
 <style>
 	main {
@@ -174,16 +236,31 @@
 		flex-direction: column;
 		height: 100%;
 	}
+	.entry__head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
 	.entry__from {
 		font-size: var(--step-1);
 		letter-spacing: 0.06em;
-		margin-bottom: 1rem;
 		color: var(--ink-700);
 	}
 	.entry__from .hand {
 		text-transform: none;
 		letter-spacing: 0;
 		font-size: 1.15em;
+	}
+	.entry__avatar {
+		width: 4rem;
+		height: 4rem;
+		border-radius: 50%;
+		object-fit: cover;
+		border: 3px solid #fffdf6;
+		box-shadow: 0 4px 12px -6px var(--shadow-page);
+		flex-shrink: 0;
 	}
 	.entry__qa {
 		margin: 0;
@@ -212,26 +289,59 @@
 		color: var(--ink-700);
 	}
 
-	.polaroid {
+	.polaroids {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-bottom: 1.2rem;
 		align-self: flex-end;
-		width: 8.5rem;
-		height: 9.5rem;
-		margin-bottom: 1rem;
-		padding: 0.6rem 0.6rem 1.6rem;
+	}
+	.polaroid {
+		width: 5.2rem;
+		height: 6rem;
+		padding: 0.3rem 0.3rem 0.9rem;
 		background: #fffdf6;
 		border: 1px solid var(--paper-edge);
-		box-shadow: 0 8px 18px -8px var(--shadow-page);
-		transform: rotate(2.5deg);
-		display: grid;
+		box-shadow: 0 6px 14px -8px var(--shadow-page);
+		transform: rotate(var(--rot, 0deg));
+		cursor: pointer;
+		overflow: hidden;
 	}
-	.polaroid span {
+	.polaroid img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		object-fit: cover;
+	}
+
+	.lightbox {
+		position: fixed;
+		inset: 0;
+		z-index: 50;
+		background: rgba(20, 12, 6, 0.86);
 		display: grid;
 		place-items: center;
-		background: var(--paper-300);
-		color: var(--ink-300);
-		font-family: var(--font-label);
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-		font-size: var(--step--1);
+		padding: 24px;
+		cursor: zoom-out;
+	}
+	.lightbox img {
+		max-width: min(92vw, 600px);
+		max-height: 90vh;
+		border-radius: 4px;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+	}
+	.lightbox__x {
+		position: fixed;
+		top: 1rem;
+		right: 1.2rem;
+		width: 2.4rem;
+		height: 2.4rem;
+		border-radius: 50%;
+		border: 0;
+		background: rgba(255, 255, 255, 0.15);
+		color: #fff;
+		font-size: 1.4rem;
+		cursor: pointer;
 	}
 </style>
