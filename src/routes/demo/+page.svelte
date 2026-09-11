@@ -190,8 +190,6 @@
 	main {
 		min-height: 100vh;
 		display: flex;
-		align-items: flex-start;
-		justify-content: center;
 	}
 
 	.reading {

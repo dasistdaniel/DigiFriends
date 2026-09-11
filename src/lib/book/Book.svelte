@@ -184,8 +184,10 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		justify-content: center;
 		gap: 1.2rem;
 		width: 100%;
+		min-height: 100%;
 		padding: clamp(1rem, 4vw, 3rem) 16px;
 		background: radial-gradient(120% 80% at 50% 0%, transparent, var(--room-vignette));
 	}
