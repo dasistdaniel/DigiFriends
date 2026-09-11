@@ -39,3 +39,12 @@ services:
 volumes:
   db-data:
   uploads:
+
+networks:
+  default:
+    # Host betreibt schon viele Compose-Stacks; die Docker-Standard-Adresspools
+    # (172.16-31.0.0/16, 192.168.0-240.0/20) sind belegt. Eigenes, isoliertes
+    # Subnetz statt Docker das naechste freie raten zu lassen.
+    ipam:
+      config:
+        - subnet: 10.89.0.0/24
