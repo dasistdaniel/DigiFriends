@@ -12,12 +12,15 @@ einem VPS.
 
 ## Status
 
-Frühe Entwicklung. Scaffold steht, Features folgen entlang der Roadmap in `KONZEPT.md` (§14).
+Buch anlegen, Lesen/Schreiben mit Foto-Upload, Eintrag bearbeiten, Admin-Oberfläche
+(Einträge/Fragen/Buch/Zugänge) und Deployment stehen. Offene Punkte: Zeichen-Canvas,
+Design-Optionen, E-Mail-Recovery, Export, DSGVO-Seiten – siehe `KONZEPT.md` (§14/§15).
 
 ## Stack
 
 SvelteKit (Svelte 5) · TypeScript · `@sveltejs/adapter-node` · Drizzle ORM ·
-PostgreSQL (Produktion) / PGlite (lokal, ohne Installation) · `sharp` · Caddy · Docker Compose
+PostgreSQL (Produktion) / PGlite (lokal, ohne Installation) · `sharp` · Docker Compose
+(Reverse Proxy/TLS stellt der Betreiber bereit)
 
 ## Entwicklung
 
@@ -32,4 +35,5 @@ Weitere Skripte: `npm run check`, `npm run lint`, `npm run format`, `npm test`.
 
 ## Deployment
 
-Siehe [`docs/deployment.md`](./docs/deployment.md) (folgt) – `docker compose up -d` auf einem EU-VPS.
+Siehe [`DEPLOYMENT.md`](./DEPLOYMENT.md) – `docker compose up -d --build` auf einem
+eigenen Server, TLS/Domain per Reverse Proxy davor.

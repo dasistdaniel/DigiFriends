@@ -1,0 +1,15 @@
+node_modules
+.svelte-kit
+build
+.pgdata
+.uploads
+data
+uploads
+.git
+.env
+.env.*
+!.env.example
+*.log
+coverage
+.vscode
+.idea
