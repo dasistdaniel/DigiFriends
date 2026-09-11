@@ -36,7 +36,12 @@ export const load: PageServerLoad = () => {
 		error(403, 'Das Anlegen neuer Bücher ist auf diesem Server deaktiviert.');
 	}
 	return {
-		templates: templates.map(({ id, name, description }) => ({ id, name, description })),
+		templates: templates.map(({ id, name, description, questions }) => ({
+			id,
+			name,
+			description,
+			questions
+		})),
 		defaultTemplateId
 	};
 };

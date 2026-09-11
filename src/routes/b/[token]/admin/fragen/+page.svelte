@@ -25,6 +25,7 @@
 	let confirmApply = $state(false);
 
 	const templateList = $derived(data.locked ? [] : data.templates);
+	const previewTemplate = $derived(templateList.find((t) => t.id === applyId));
 	const message = $derived(form && 'message' in form ? form.message : undefined);
 	const saved = $derived(Boolean(form && 'saved' in form && form.saved));
 
@@ -183,6 +184,14 @@
 					</button>
 				{/if}
 			</form>
+
+			{#if previewTemplate}
+				<ul class="tpl__preview">
+					{#each previewTemplate.questions as q (q.label)}
+						<li>{q.label}</li>
+					{/each}
+				</ul>
+			{/if}
 		</section>
 	</div>
 {/if}
@@ -339,5 +348,16 @@
 		flex-wrap: wrap;
 		align-items: center;
 		margin-top: 0.7rem;
+	}
+	.tpl__preview {
+		margin: 0.8rem 0 0;
+		padding: 0.6rem 0 0 1.1rem;
+		border-top: 1px dashed var(--surface-line);
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		font-size: var(--step--1);
+		color: var(--ink-700);
+		max-width: 32rem;
 	}
 </style>

@@ -45,7 +45,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			section: q.section,
 			required: q.required
 		})),
-		templates: templates.map(({ id, name, description }) => ({ id, name, description }))
+		templates: templates.map(({ id, name, description, questions }) => ({
+			id,
+			name,
+			description,
+			questions
+		}))
 	};
 };
 

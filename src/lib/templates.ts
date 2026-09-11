@@ -97,6 +97,87 @@ export const templates: Template[] = [
 				section: 'right'
 			}
 		]
+	},
+	{
+		id: 'reise',
+		name: 'Reise / Abenteuer',
+		description: 'Für Reisegruppen, WGs auf Zeit oder eine gemeinsame Tour.',
+		questions: [
+			{ label: 'Mein Highlight dieser Reise', fieldType: 'long', section: 'left' },
+			{ label: 'Der peinlichste Moment unterwegs', fieldType: 'long', section: 'left' },
+			{ label: 'Das beste Essen, das wir hatten', fieldType: 'short', section: 'left' },
+			{
+				label: 'Was ich nie erwartet hätte, dass es passiert',
+				fieldType: 'long',
+				section: 'right'
+			},
+			{ label: 'Wohin sollten wir als Nächstes reisen?', fieldType: 'short', section: 'right' },
+			{ label: 'Das nehme ich aus dieser Reise mit', fieldType: 'long', section: 'right' }
+		]
+	},
+	{
+		id: 'verein-team',
+		name: 'Verein / Team',
+		description: 'Für Sportteams, Vereine oder Kolleg:innen einer Saison/eines Projekts.',
+		questions: [
+			{ label: 'Mein erster Eindruck vom Team', fieldType: 'long', section: 'left' },
+			{ label: 'Unser bestes gemeinsames Erlebnis', fieldType: 'long', section: 'left' },
+			{ label: 'Mein Spitzname in der Gruppe', fieldType: 'short', section: 'left' },
+			{ label: 'Das mache ich, wenn ich nicht hier bin', fieldType: 'short', section: 'right' },
+			{ label: 'Was ich dem Team wünsche', fieldType: 'long', section: 'right' },
+			{
+				label: 'Eine Regel, die wir uns ausgedacht haben (und warum)',
+				fieldType: 'long',
+				section: 'right'
+			}
+		]
+	},
+	{
+		id: 'schraeg',
+		name: 'Ungewöhnlich & schräg',
+		description: 'Für alle, die lieber schmunzeln statt schwelgen wollen.',
+		questions: [
+			{
+				label: 'Welches Küchengerät wärst du, und warum genau dieses?',
+				fieldType: 'long',
+				section: 'left'
+			},
+			{
+				label: 'Die schlechteste Ausrede, die dir je jemand geglaubt hat',
+				fieldType: 'long',
+				section: 'left'
+			},
+			{
+				label: 'Ein Talent, das dir niemand zutraut',
+				fieldType: 'short',
+				section: 'left'
+			},
+			{
+				label: 'Wenn unsere Freundschaft ein Geräusch wäre, welches?',
+				fieldType: 'short',
+				section: 'left'
+			},
+			{
+				label: 'Die verrückteste Verschwörungstheorie, die du dir gerade ausdenkst',
+				fieldType: 'long',
+				section: 'right'
+			},
+			{
+				label: 'Dein Motto, falls du morgen Bürgermeister:in würdest',
+				fieldType: 'long',
+				section: 'right'
+			},
+			{
+				label: 'Auf einer Skala von Toaster bis Weltraumrakete: wie kompliziert bist du?',
+				fieldType: 'short',
+				section: 'right'
+			},
+			{
+				label: 'Letzte Worte, bevor die Erde explodiert',
+				fieldType: 'short',
+				section: 'right'
+			}
+		]
 	}
 ];
 

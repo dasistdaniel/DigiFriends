@@ -24,6 +24,7 @@
 	);
 	let submitting = $state(false);
 	let copied = $state<string | null>(null);
+	let previewId = $state<string | null>(null);
 
 	const errors = $derived((form && 'errors' in form ? form.errors : undefined) ?? {});
 
@@ -142,16 +143,35 @@
 					<legend class="label">Fragen-Vorlage</legend>
 					<div class="cards">
 						{#each data.templates as tpl (tpl.id)}
-							<label class="card" class:card--on={selectedTemplate === tpl.id}>
-								<input
-									type="radio"
-									name="templateId"
-									value={tpl.id}
-									bind:group={selectedTemplate}
-								/>
-								<span class="card__name">{tpl.name}</span>
-								<span class="card__desc">{tpl.description}</span>
-							</label>
+							<div class="card" class:card--on={selectedTemplate === tpl.id}>
+								<label class="card__select">
+									<input
+										type="radio"
+										name="templateId"
+										value={tpl.id}
+										bind:group={selectedTemplate}
+									/>
+									<span class="card__name">{tpl.name}</span>
+									<span class="card__desc">{tpl.description}</span>
+								</label>
+								<button
+									type="button"
+									class="card__preview-toggle"
+									aria-expanded={previewId === tpl.id}
+									onclick={() => (previewId = previewId === tpl.id ? null : tpl.id)}
+								>
+									{previewId === tpl.id
+										? 'Fragen verbergen'
+										: `${tpl.questions.length} Fragen ansehen`}
+								</button>
+								{#if previewId === tpl.id}
+									<ul class="card__questions">
+										{#each tpl.questions as q (q.label)}
+											<li>{q.label}</li>
+										{/each}
+									</ul>
+								{/if}
+							</div>
 						{/each}
 					</div>
 					<p class="hint">Die Fragen lassen sich später im Admin-Bereich frei anpassen.</p>
@@ -312,17 +332,22 @@
 	.card {
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.4rem;
 		padding: 0.8rem 0.9rem;
 		border: 1px solid var(--surface-line);
 		border-radius: 6px;
-		cursor: pointer;
 	}
 	.card--on {
 		border-color: var(--ochre);
 		box-shadow: inset 0 0 0 1px var(--ochre);
 	}
-	.card input {
+	.card__select {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		cursor: pointer;
+	}
+	.card__select input {
 		position: absolute;
 		opacity: 0;
 	}
@@ -333,6 +358,29 @@
 	.card__desc {
 		font-size: var(--step--1);
 		color: var(--ink-500);
+	}
+	.card__preview-toggle {
+		align-self: flex-start;
+		background: none;
+		border: 0;
+		padding: 0;
+		font-family: var(--font-label);
+		font-size: var(--step--1);
+		letter-spacing: 0.03em;
+		color: var(--ochre-deep);
+		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+	.card__questions {
+		margin: 0;
+		padding: 0.6rem 0 0 1.1rem;
+		border-top: 1px dashed var(--surface-line);
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		font-size: var(--step--1);
+		color: var(--ink-700);
 	}
 
 	.radio {
