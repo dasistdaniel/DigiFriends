@@ -35,6 +35,13 @@
 	--room: #c3b79b;
 	--room-vignette: rgba(58, 32, 21, 0.35);
 
+	/* Schreibtisch (Seitenhintergrund): warmes Eichenholz mit Maserung */
+	--desk-base: #c58c53;
+	--desk-glow: rgba(255, 232, 190, 0.45);
+	--desk-seam-dark: rgba(70, 40, 15, 0.15);
+	--desk-seam-light: rgba(255, 224, 180, 0.12);
+	--desk-vignette: rgba(35, 18, 6, 0.4);
+
 	/* UI */
 	--surface: #f7f1e1;
 	--surface-line: #d8c7a0;
@@ -71,6 +78,12 @@
 		--paper-200: #e6dcc2;
 		--paper-300: #dccfb0;
 		--surface: #efe7d2;
+		/* Schreibtisch bei Nacht: dunkles Nussbaumholz */
+		--desk-base: #3f2c1b;
+		--desk-glow: rgba(255, 200, 140, 0.12);
+		--desk-seam-dark: rgba(0, 0, 0, 0.3);
+		--desk-seam-light: rgba(255, 220, 170, 0.05);
+		--desk-vignette: rgba(0, 0, 0, 0.6);
 		color-scheme: dark;
 	}
 }
@@ -83,5 +96,10 @@
 	--paper-200: #e6dcc2;
 	--paper-300: #dccfb0;
 	--surface: #efe7d2;
+	--desk-base: #3f2c1b;
+	--desk-glow: rgba(255, 200, 140, 0.12);
+	--desk-seam-dark: rgba(0, 0, 0, 0.3);
+	--desk-seam-light: rgba(255, 220, 170, 0.05);
+	--desk-vignette: rgba(0, 0, 0, 0.6);
 	color-scheme: dark;
 }

@@ -13,13 +13,23 @@ html {
 body {
 	margin: 0;
 	min-height: 100vh;
-	background-color: var(--room);
 	color: var(--ink-900);
 	font-family: var(--font-body);
 	font-size: var(--step-0);
 	line-height: 1.6;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
+
+	/* Schreibtisch aus Holz, auf dem das Buch/die Oberfläche liegt */
+	background-color: var(--desk-base);
+	background-image:
+		radial-gradient(80% 55% at 50% -12%, var(--desk-glow), transparent 65%),
+		repeating-linear-gradient(0deg, var(--desk-seam-dark) 0 3px, transparent 3px 260px),
+		repeating-linear-gradient(0deg, var(--desk-seam-light) 0 2px, transparent 2px 260px),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.9' numOctaves='4' seed='42' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.16  0 0 0 0 0.09  0 0 0 0 0.03  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='h'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012 0.9' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1  0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 0.3 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23h)'/%3E%3C/svg%3E"),
+		radial-gradient(130% 100% at 50% 50%, transparent 50%, var(--desk-vignette));
+	background-blend-mode: normal, normal, normal, normal, screen, normal;
 }
 
 h1,
