@@ -73,6 +73,7 @@
 			initial={{ displayName: prefillName }}
 			{lockName}
 			moderationHint={reviewMode}
+			requireConsent
 			{message}
 		/>
 	</main>

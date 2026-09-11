@@ -1,0 +1,48 @@
+/**
+ * Selbst gehostete Schriftschnitte (Oswald, Crimson Pro, Kalam).
+ * Bewusst nicht von fonts.googleapis.com/fonts.gstatic.com geladen: dabei
+ * würde die IP-Adresse jedes Besuchers ohne Einwilligung an Google
+ * übertragen (vgl. LG München I, Urt. v. 20.01.2022 – 3 O 17493/20).
+ * Dateien liegen unter /fonts, identisch mit den offiziellen Google-Fonts-
+ * Dateien (nur "latin"-Subset, reicht für Deutsch inkl. Umlaute/ß).
+ */
+
+@font-face {
+	font-family: 'Oswald';
+	font-style: normal;
+	font-weight: 400 600;
+	font-display: swap;
+	src: url('/fonts/oswald-var.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Crimson Pro';
+	font-style: normal;
+	font-weight: 400 600;
+	font-display: swap;
+	src: url('/fonts/crimsonpro-var.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Crimson Pro';
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url('/fonts/crimsonpro-italic.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Kalam';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('/fonts/kalam-regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-family: 'Kalam';
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url('/fonts/kalam-bold.woff2') format('woff2');
+}

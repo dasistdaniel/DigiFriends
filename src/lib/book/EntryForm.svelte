@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { untrack, type Snippet } from 'svelte';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import BookPage from '$lib/book/BookPage.svelte';
 	import ImagePicker from '$lib/book/ImagePicker.svelte';
 
@@ -21,6 +22,7 @@
 		initial,
 		lockName = false,
 		moderationHint = false,
+		requireConsent = false,
 		message,
 		extraActions
 	}: {
@@ -37,6 +39,8 @@
 		};
 		lockName?: boolean;
 		moderationHint?: boolean;
+		/** Einwilligungs-Checkbox einblenden (nur beim erstmaligen Anlegen eines Eintrags) */
+		requireConsent?: boolean;
 		message?: string;
 		extraActions?: Snippet;
 	} = $props();
@@ -51,6 +55,7 @@
 	let answers = $state<Record<string, string>>(
 		untrack(() => Object.fromEntries(questions.map((q) => [q.id, initial?.answers?.[q.id] ?? ''])))
 	);
+	let consent = $state(false);
 	let submitting = $state(false);
 </script>
 
@@ -157,8 +162,21 @@
 		</BookPage>
 	</div>
 
+	{#if requireConsent}
+		<label class="consent">
+			<input type="checkbox" name="consent" required bind:checked={consent} />
+			<span>
+				Ich habe die
+				<a href={resolve('/datenschutz')} target="_blank" rel="noopener">Datenschutzerklärung</a>
+				gelesen und bin einverstanden, dass meine Angaben für dieses Freundebuch gespeichert werden. Fotos
+				lade ich nur hoch, wenn ich dazu berechtigt bin und – falls andere Personen zu sehen sind – deren
+				Einverständnis habe.
+			</span>
+		</label>
+	{/if}
+
 	<div class="actions">
-		<button class="cta" type="submit" disabled={submitting}>
+		<button class="cta" type="submit" disabled={submitting || (requireConsent && !consent)}>
 			{submitting ? 'Wird gespeichert …' : submitLabel}
 		</button>
 		{#if moderationHint}<span class="hint">Erscheint erst nach Freigabe.</span>{/if}
@@ -240,6 +258,28 @@
 	}
 	input[readonly] {
 		opacity: 0.75;
+	}
+
+	.consent {
+		max-width: 60rem;
+		margin: 1.4rem auto 0;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.6rem;
+		background: var(--surface);
+		border: 1px solid var(--surface-line);
+		border-radius: 8px;
+		padding: 0.8rem 1rem;
+		font-size: var(--step--1);
+		color: var(--ink-700);
+		cursor: pointer;
+	}
+	.consent input {
+		margin-top: 0.2em;
+		flex-shrink: 0;
+	}
+	.consent a {
+		color: var(--ochre-deep);
 	}
 
 	.actions {

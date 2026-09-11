@@ -49,6 +49,7 @@ export const actions: Actions = {
 		const fd = await request.formData();
 		const displayName = String(fd.get('displayName') ?? '').trim();
 		const closingLine = String(fd.get('closingLine') ?? '').trim();
+		const consent = fd.get('consent') === 'on';
 
 		const questions = await db.query.question.findMany({
 			where: eq(question.bookId, access.book.id),
@@ -60,6 +61,11 @@ export const actions: Actions = {
 			value: String(fd.get(`q_${q.id}`) ?? '').trim()
 		}));
 
+		if (!consent) {
+			return fail(400, {
+				message: 'Bitte bestätige die Datenschutzerklärung, um den Eintrag abzuschließen.'
+			});
+		}
 		if (!displayName) {
 			return fail(400, {
 				message: 'Bitte trag deinen Namen ein.',
