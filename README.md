@@ -4,6 +4,7 @@ Digitales Freundebuch als Web-App: ein Buch, das sich im Browser aufschlagen und
 durchblättern lässt. Ohne Konto, teilbar per Link, selbst betreibbar per Docker auf
 einem VPS.
 
+- Online: [digifriends.nichtregistriert.de](http://digifriends.nichtregistriert.de)
 - Konzept: [`KONZEPT.md`](./KONZEPT.md)
 - Ausgangsidee: [`idee.md`](./idee.md)
 
