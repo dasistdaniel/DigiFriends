@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import { asset, book } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
 import { deleteAsset } from '$lib/server/storage';
+import { bookThemes, resolveBookThemeId } from '$lib/bookThemes';
 import type { Actions, PageServerLoad } from './$types';
 
 async function adminBook(params: { token: string }, cookies: import('@sveltejs/kit').Cookies) {
@@ -24,7 +25,8 @@ const settingsSchema = z.object({
 		.string()
 		.trim()
 		.max(200)
-		.refine((v) => v === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), 'Ungültige E-Mail-Adresse.')
+		.refine((v) => v === '' || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v), 'Ungültige E-Mail-Adresse.'),
+	theme: z.enum(bookThemes.map((t) => t.id) as [string, ...string[]])
 });
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -32,6 +34,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	if (!b) return { locked: true as const };
 	return {
 		locked: false as const,
+		themes: bookThemes,
 		settings: {
 			title: b.title,
 			subtitle: b.subtitle ?? '',
@@ -39,7 +42,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			moderationMode: b.moderationMode,
 			openWriteEnabled: b.openWriteEnabled,
 			recoveryEmail: b.recoveryEmail ?? '',
-			status: b.status
+			status: b.status,
+			theme: resolveBookThemeId((b.design as { theme?: unknown } | null)?.theme)
 		}
 	};
 };
@@ -56,7 +60,8 @@ export const actions: Actions = {
 			introText: fd.get('introText') ?? '',
 			moderationMode: fd.get('moderationMode'),
 			openWriteEnabled: fd.get('openWriteEnabled') === 'on',
-			recoveryEmail: fd.get('recoveryEmail') ?? ''
+			recoveryEmail: fd.get('recoveryEmail') ?? '',
+			theme: fd.get('theme')
 		});
 		if (!parsed.success) {
 			return fail(400, {
@@ -73,6 +78,7 @@ export const actions: Actions = {
 				moderationMode: d.moderationMode,
 				openWriteEnabled: d.openWriteEnabled,
 				recoveryEmail: d.recoveryEmail || null,
+				design: { theme: d.theme },
 				updatedAt: new Date()
 			})
 			.where(eq(book.id, b.id));

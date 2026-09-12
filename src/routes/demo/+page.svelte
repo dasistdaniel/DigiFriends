@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Book from '$lib/book/Book.svelte';
 	import BookPage from '$lib/book/BookPage.svelte';
+	import { bookThemes, defaultBookThemeId } from '$lib/bookThemes';
+
+	let theme = $state(defaultBookThemeId);
 
 	// Demo-Inhalt zum Zeigen der Buch-Optik – keine echten Nutzerdaten.
 	// Platzhalterbilder sind selbst gezeichnete SVGs (kein Fremdmaterial),
@@ -175,7 +178,26 @@
 {/snippet}
 
 <main>
-	<Book title="Unser Freundebuch" subtitle="Sommer 2026" pageCount={4} {page} />
+	<div class="demo-stack">
+		<div class="theme-switch" role="radiogroup" aria-label="Einband-Design">
+			{#each bookThemes as t (t.id)}
+				<button
+					type="button"
+					class="theme-switch__btn"
+					class:theme-switch__btn--on={theme === t.id}
+					style:background={`linear-gradient(135deg, ${t.swatch[0]}, ${t.swatch[1]})`}
+					aria-pressed={theme === t.id}
+					title={t.name}
+					onclick={() => (theme = t.id)}
+				>
+					<span class="visually-hidden">{t.name}</span>
+				</button>
+			{/each}
+		</div>
+		<div class="book-slot">
+			<Book title="Unser Freundebuch" subtitle="Sommer 2026" {theme} pageCount={4} {page} />
+		</div>
+	</div>
 </main>
 
 {#if lightbox}
@@ -189,6 +211,35 @@
 <style>
 	main {
 		min-height: calc(100vh - var(--footer-h));
+		display: flex;
+	}
+	.demo-stack {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+	}
+	.theme-switch {
+		flex: 0 0 auto;
+		display: flex;
+		justify-content: center;
+		gap: 0.55rem;
+		padding: 0.9rem 16px 0;
+	}
+	.theme-switch__btn {
+		width: 1.9rem;
+		height: 1.9rem;
+		padding: 0;
+		border-radius: 50%;
+		border: 2px solid var(--surface);
+		box-shadow: 0 0 0 1px var(--surface-line);
+		cursor: pointer;
+	}
+	.theme-switch__btn--on {
+		box-shadow: 0 0 0 2px var(--ink-700);
+	}
+	.book-slot {
+		flex: 1 1 auto;
+		min-height: 0;
 		display: flex;
 	}
 

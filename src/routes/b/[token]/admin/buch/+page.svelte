@@ -13,6 +13,7 @@
 	let moderationMode = $state(s?.moderationMode ?? 'instant');
 	let openWriteEnabled = $state(s?.openWriteEnabled ?? true);
 	let recoveryEmail = $state(s?.recoveryEmail ?? '');
+	let theme = $state(s?.theme ?? 'klassisch');
 	let deleteConfirm = $state('');
 	let showDelete = $state(false);
 
@@ -70,6 +71,25 @@
 				<input name="recoveryEmail" type="email" bind:value={recoveryEmail} maxlength="200" />
 				<span class="hint">Für die Wiederherstellung des Admin-Links, falls du ihn verlierst.</span>
 			</label>
+
+			<fieldset class="field">
+				<legend class="label">Einband-Design</legend>
+				<div class="themes">
+					{#each data.locked ? [] : data.themes as t (t.id)}
+						<label class="theme-card" class:theme-card--on={theme === t.id}>
+							<input type="radio" name="theme" value={t.id} bind:group={theme} />
+							<span
+								class="theme-card__swatch"
+								style:background={`linear-gradient(135deg, ${t.swatch[0]}, ${t.swatch[1]})`}
+							></span>
+							<span class="theme-card__text">
+								<span class="theme-card__name">{t.name}</span>
+								<span class="theme-card__desc">{t.description}</span>
+							</span>
+						</label>
+					{/each}
+				</div>
+			</fieldset>
 
 			<button class="btn btn--primary" type="submit">Speichern</button>
 		</form>
@@ -186,6 +206,54 @@
 		align-items: center;
 		gap: 0.4rem;
 		font-size: var(--step-0);
+	}
+
+	.themes {
+		display: grid;
+		gap: 0.6rem;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 560px) {
+		.themes {
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+	.theme-card {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		padding: 0.6rem 0.8rem;
+		border: 1px solid var(--surface-line);
+		border-radius: 6px;
+		cursor: pointer;
+	}
+	.theme-card--on {
+		border-color: var(--ochre);
+		box-shadow: inset 0 0 0 1px var(--ochre);
+	}
+	.theme-card input {
+		position: absolute;
+		opacity: 0;
+	}
+	.theme-card__swatch {
+		width: 2.2rem;
+		height: 2.2rem;
+		border-radius: 50%;
+		flex-shrink: 0;
+		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+	}
+	.theme-card__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.1rem;
+	}
+	.theme-card__name {
+		font-family: var(--font-label);
+		font-weight: 500;
+	}
+	.theme-card__desc {
+		font-size: var(--step--1);
+		color: var(--ink-500);
 	}
 
 	.flash {

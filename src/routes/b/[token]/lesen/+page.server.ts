@@ -2,6 +2,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { entry, question } from '$lib/server/db/schema';
 import { loadBookAccess } from '$lib/server/guard';
+import { resolveBookThemeId } from '$lib/bookThemes';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -30,7 +31,8 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		book: {
 			title: access.book.title,
 			subtitle: access.book.subtitle,
-			introText: access.book.introText
+			introText: access.book.introText,
+			theme: resolveBookThemeId((access.book.design as { theme?: unknown } | null)?.theme)
 		},
 		questions: questions.map((q) => ({
 			id: q.id,

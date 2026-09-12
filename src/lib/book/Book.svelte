@@ -8,6 +8,7 @@
 		subtitle,
 		pageCount,
 		page,
+		theme = 'klassisch',
 		open = $bindable(false),
 		startPage = 0,
 		onnavigate
@@ -18,6 +19,8 @@
 		pageCount: number;
 		/** rendert die Innenseite mit gegebenem Index */
 		page: Snippet<[number]>;
+		/** Einband-/Akzentfarben, siehe $lib/bookThemes */
+		theme?: string;
 		open?: boolean;
 		startPage?: number;
 		onnavigate?: (leaf: number) => void;
@@ -100,7 +103,7 @@
 <svelte:window {onkeydown} />
 
 {#if !open}
-	<div class="stage stage--closed">
+	<div class="stage stage--closed" data-book-theme={theme}>
 		<button type="button" class="cover" onclick={() => (open = true)} aria-label="Buch aufschlagen">
 			<span class="cover__edge" aria-hidden="true"></span>
 			<span class="cover__spine" aria-hidden="true"></span>
@@ -113,7 +116,7 @@
 		</button>
 	</div>
 {:else}
-	<div class="stage">
+	<div class="stage" data-book-theme={theme}>
 		<div
 			class="book"
 			class:book--single={perView === 1}
@@ -190,6 +193,58 @@
 		min-height: 100%;
 		padding: clamp(1rem, 4vw, 3rem) 16px;
 		background: radial-gradient(120% 80% at 50% 0%, transparent, var(--room-vignette));
+
+		/* Einband-Theme (Standard = klassisches Leder), überschrieben je data-book-theme unten */
+		--cover-gradient: linear-gradient(180deg, var(--leather-700), var(--leather-900));
+		--cover-sheen: rgba(255, 240, 220, 0.16);
+		--cover-sheen-soft: rgba(255, 240, 220, 0.08);
+		--cover-ink: rgba(247, 241, 225, 0.94);
+		--cover-plate-border: rgba(247, 241, 225, 0.35);
+		--cover-title-shadow: none;
+	}
+
+	/* ------------------------------------------------------- Einband-Themes */
+	.stage[data-book-theme='regenbogen'] {
+		--cover-gradient: linear-gradient(
+			135deg,
+			#e63950 0%,
+			#e63950 16.6%,
+			#f2994a 16.6%,
+			#f2994a 33.2%,
+			#f2c94c 33.2%,
+			#f2c94c 49.8%,
+			#27ae60 49.8%,
+			#27ae60 66.4%,
+			#2f80ed 66.4%,
+			#2f80ed 83%,
+			#9b51e0 83%,
+			#9b51e0 100%
+		);
+		--cover-sheen: rgba(255, 255, 255, 0.32);
+		--cover-sheen-soft: rgba(255, 255, 255, 0.16);
+		--cover-ink: #fffaf0;
+		--cover-plate-border: rgba(255, 255, 255, 0.55);
+		--cover-title-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+		--ochre: #f2994a;
+		--ochre-deep: #d6336c;
+	}
+	.stage[data-book-theme='ozean'] {
+		--cover-gradient: linear-gradient(180deg, #1f6f78, #123b42);
+		--cover-sheen: rgba(255, 255, 255, 0.14);
+		--cover-sheen-soft: rgba(255, 255, 255, 0.07);
+		--cover-ink: rgba(238, 250, 250, 0.94);
+		--cover-plate-border: rgba(238, 250, 250, 0.32);
+		--ochre: #3fb8c4;
+		--ochre-deep: #1f8a94;
+	}
+	.stage[data-book-theme='mitternacht'] {
+		--cover-gradient: linear-gradient(180deg, #1b2340, #0a0e1f);
+		--cover-sheen: rgba(255, 221, 150, 0.12);
+		--cover-sheen-soft: rgba(255, 221, 150, 0.06);
+		--cover-ink: #f4e3b2;
+		--cover-plate-border: rgba(244, 227, 178, 0.4);
+		--ochre: #d4af37;
+		--ochre-deep: #b8892f;
 	}
 
 	/* ---------------------------------------------------------------- Cover */
@@ -203,13 +258,11 @@
 		padding: 0;
 		cursor: pointer;
 		border-radius: 6px 12px 12px 6px;
-		background:
-			linear-gradient(115deg, rgba(255, 240, 220, 0.16), transparent 42%),
-			linear-gradient(180deg, var(--leather-700), var(--leather-900));
+		background: linear-gradient(115deg, var(--cover-sheen), transparent 42%), var(--cover-gradient);
 		box-shadow:
-			0 2px 0 rgba(255, 240, 220, 0.08) inset,
+			0 2px 0 var(--cover-sheen-soft) inset,
 			0 26px 50px -18px var(--shadow-book);
-		color: rgba(247, 241, 225, 0.94);
+		color: var(--cover-ink);
 		transition:
 			transform 0.35s var(--cubic, ease),
 			box-shadow 0.35s ease;
@@ -250,12 +303,13 @@
 		align-items: center;
 		gap: 0.6rem;
 		padding: clamp(1.4rem, 1rem + 3vw, 2.4rem) 1.2rem;
-		border: 1px solid rgba(247, 241, 225, 0.35);
+		border: 1px solid var(--cover-plate-border);
 		border-radius: 4px;
 	}
 	.cover__ornament {
 		font-size: 1.5rem;
 		opacity: 0.8;
+		text-shadow: var(--cover-title-shadow);
 	}
 	.cover__title {
 		font-family: var(--font-hand);
@@ -263,6 +317,7 @@
 		font-weight: 700;
 		text-align: center;
 		line-height: 1.1;
+		text-shadow: var(--cover-title-shadow);
 	}
 	.cover__subtitle {
 		font-family: var(--font-label);
@@ -270,6 +325,7 @@
 		letter-spacing: 0.12em;
 		font-size: var(--step--1);
 		opacity: 0.8;
+		text-shadow: var(--cover-title-shadow);
 	}
 	.cover__hint {
 		position: absolute;
@@ -280,6 +336,7 @@
 		font-size: var(--step--1);
 		letter-spacing: 0.14em;
 		opacity: 0.7;
+		text-shadow: var(--cover-title-shadow);
 	}
 
 	/* ----------------------------------------------------------------- Book */

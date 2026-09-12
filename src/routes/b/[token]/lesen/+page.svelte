@@ -141,6 +141,7 @@
 			bind:this={bookRef}
 			title={book.title}
 			subtitle={book.subtitle ?? undefined}
+			theme={book.theme}
 			{pageCount}
 			{page}
 		/>
