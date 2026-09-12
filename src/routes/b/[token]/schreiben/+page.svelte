@@ -84,7 +84,7 @@
 		padding: clamp(1rem, 4vw, 3rem) 16px;
 	}
 	main.centered {
-		min-height: 100vh;
+		min-height: calc(100vh - var(--footer-h));
 		display: grid;
 		place-items: center;
 	}

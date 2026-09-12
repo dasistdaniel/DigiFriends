@@ -157,7 +157,7 @@
 
 <style>
 	main {
-		min-height: 100vh;
+		min-height: calc(100vh - var(--footer-h));
 		display: flex;
 	}
 

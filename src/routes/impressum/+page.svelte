@@ -69,7 +69,7 @@
 	main {
 		display: grid;
 		place-items: start center;
-		min-height: 100vh;
+		min-height: calc(100vh - var(--footer-h));
 		padding: clamp(1.5rem, 6vw, 4rem) 16px;
 	}
 	.card {

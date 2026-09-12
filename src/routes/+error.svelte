@@ -15,7 +15,7 @@
 
 <style>
 	main {
-		min-height: 100vh;
+		min-height: calc(100vh - var(--footer-h));
 		display: grid;
 		place-items: center;
 		padding: clamp(1.5rem, 6vw, 4rem) 16px;

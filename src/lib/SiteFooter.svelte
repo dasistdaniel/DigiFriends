@@ -12,6 +12,11 @@
 
 <style>
 	.site-footer {
+		position: fixed;
+		inset: auto 0 0 0;
+		z-index: 30;
+		min-height: var(--footer-h);
+		box-sizing: border-box;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
@@ -24,6 +29,13 @@
 		font-size: 0.72rem;
 		letter-spacing: 0.03em;
 		color: var(--ink-500);
+		box-shadow: 0 -8px 18px -14px var(--shadow-book);
+	}
+	@media (max-width: 480px) {
+		.site-footer {
+			flex-direction: column;
+			gap: 0.25rem;
+		}
 	}
 	nav {
 		display: flex;
