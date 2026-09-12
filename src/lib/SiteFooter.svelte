@@ -5,6 +5,7 @@
 <footer class="site-footer">
 	<span>Ein privates, nicht-kommerzielles Projekt</span>
 	<nav>
+		<a href="https://github.com/dasistdaniel/DigiFriends" target="_blank" rel="noopener">GitHub</a>
 		<a href={resolve('/impressum')}>Impressum</a>
 		<a href={resolve('/datenschutz')}>Datenschutz</a>
 	</nav>
