@@ -51,6 +51,20 @@
 			der abgebildeten Personen vorliegt.
 		</p>
 
+		<h2>Bildnachweis</h2>
+		<p>
+			Der Holz-Hintergrund ist ein Foto von <a
+				href="https://unsplash.com/de/@simon_berger"
+				target="_blank"
+				rel="noopener">Simon Berger</a
+			>
+			auf
+			<a href="https://unsplash.com/de/fotos/JH_R66BihvA" target="_blank" rel="noopener">Unsplash</a
+			>, genutzt unter der
+			<a href="https://unsplash.com/de/lizenz" target="_blank" rel="noopener">Unsplash-Lizenz</a>.
+			Alle übrigen Illustrationen (Buchdesign, Doodles, Avatare in der Demo) sind selbst gestaltet.
+		</p>
+
 		<h2>Urheberrecht</h2>
 		<p>
 			Layout, Design und Programmcode dieser Seite unterliegen dem Urheberrecht. Vervielfältigung,
