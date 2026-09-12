@@ -41,6 +41,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		createdAt: e.createdAt,
 		preview: firstQ ? (e.answers.find((a) => a.questionId === firstQ.id)?.valueText ?? '') : '',
 		photoCount: e.assets.filter((a) => a.kind === 'photo').length,
+		hasDrawing: e.drawingAssetId !== null,
 		avatar: e.avatarAssetId ? `${assetBase}/${e.avatarAssetId}/thumb` : null
 	}));
 

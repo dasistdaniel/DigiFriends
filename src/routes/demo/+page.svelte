@@ -73,6 +73,15 @@
 		}
 	];
 
+	const drawing = svg(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 140'>
+		<rect width='200' height='140' fill='#ffffff'/>
+		<circle cx='166' cy='30' r='16' fill='none' stroke='#a9762c' stroke-width='4'/>
+		<path d='M166 4v8M166 48v8M140 30h8M184 30h8M148 12l6 6M178 42l6 6M184 12l-6 6M154 42l-6 6' stroke='#a9762c' stroke-width='3' stroke-linecap='round'/>
+		<path d='M20 110c30-40 60-40 90 0' stroke='#6f7d5f' stroke-width='4' fill='none' stroke-linecap='round'/>
+		<path d='M8 120c40-8 60 6 90-4s60 4 94-6' stroke='#2f5f8a' stroke-width='4' fill='none' stroke-linecap='round'/>
+		<path d='M70 78c-10-12 2-24 12-14 10-10 22 2 12 14-6 6-12 10-12 10s-6-4-12-10z' fill='#a13d63'/>
+	</svg>`);
+
 	const photos = [
 		{ id: 'sunrise', src: photoSunrise, rotate: -3 },
 		{ id: 'coffee', src: photoCoffee, rotate: 2.5 }
@@ -141,6 +150,14 @@
 	<BookPage side="right" number={4}>
 		<div class="entry">
 			<div class="polaroids">
+				<button
+					type="button"
+					class="polaroid"
+					style="--rot: -4deg"
+					onclick={() => (lightbox = drawing)}
+				>
+					<img src={drawing} alt="Zeichnung-Erinnerung (Demo)" />
+				</button>
 				{#each photos as photo (photo.id)}
 					<button
 						type="button"

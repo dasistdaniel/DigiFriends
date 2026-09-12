@@ -4,6 +4,7 @@
 	import { resolve } from '$app/paths';
 	import BookPage from '$lib/book/BookPage.svelte';
 	import ImagePicker from '$lib/book/ImagePicker.svelte';
+	import DrawingSlot from '$lib/book/DrawingSlot.svelte';
 
 	type Q = {
 		id: string;
@@ -13,6 +14,7 @@
 		required: boolean;
 	};
 	type Pic = { id: string; thumbUrl: string };
+	type Drawing = { id: string; thumbUrl: string; url: string };
 
 	let {
 		token,
@@ -36,6 +38,7 @@
 			answers?: Record<string, string>;
 			avatar?: Pic;
 			photos?: Pic[];
+			drawing?: Drawing;
 		};
 		lockName?: boolean;
 		moderationHint?: boolean;
@@ -52,6 +55,7 @@
 	let closingLine = $state(untrack(() => initial?.closingLine ?? ''));
 	let avatarAssetId = $state(untrack(() => initial?.avatar?.id ?? ''));
 	let photoAssetIds = $state<string[]>(untrack(() => (initial?.photos ?? []).map((p) => p.id)));
+	let drawingAssetId = $state(untrack(() => initial?.drawing?.id ?? ''));
 	let answers = $state<Record<string, string>>(
 		untrack(() => Object.fromEntries(questions.map((q) => [q.id, initial?.answers?.[q.id] ?? ''])))
 	);
@@ -74,6 +78,7 @@
 
 	<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
 	<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
+	<input type="hidden" name="drawingAssetId" value={drawingAssetId} />
 
 	<div class="spread">
 		<BookPage side="left">
@@ -98,6 +103,10 @@
 						initial={initial?.avatar ? [initial.avatar] : []}
 						bind:value={avatarAssetId}
 					/>
+				</div>
+				<div class="q">
+					<span class="label">Zeichnung <span class="opt">optional</span></span>
+					<DrawingSlot {token} initial={initial?.drawing} bind:value={drawingAssetId} />
 				</div>
 				{#each leftQuestions as q (q.id)}
 					<label class="q">
@@ -236,6 +245,11 @@
 		font-size: var(--step--1);
 		letter-spacing: 0.05em;
 		color: var(--ink-500);
+	}
+	.q .opt {
+		text-transform: none;
+		letter-spacing: 0;
+		color: var(--ink-300);
 	}
 	input,
 	textarea {

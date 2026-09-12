@@ -22,6 +22,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 
 	const assetBase = `/b/${params.token}/asset`;
 	const avatar = e.avatarAssetId ? e.assets.find((a) => a.id === e.avatarAssetId) : undefined;
+	const drawing = e.drawingAssetId ? e.assets.find((a) => a.id === e.drawingAssetId) : undefined;
 	const photos = e.assets
 		.filter((a) => a.kind === 'photo')
 		.sort(
@@ -46,6 +47,13 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			closingLine: e.closingLine ?? '',
 			answers: Object.fromEntries(e.answers.map((a) => [a.questionId, a.valueText])),
 			avatar: avatar ? { id: avatar.id, thumbUrl: `${assetBase}/${avatar.id}/thumb` } : undefined,
+			drawing: drawing
+				? {
+						id: drawing.id,
+						thumbUrl: `${assetBase}/${drawing.id}/thumb`,
+						url: `${assetBase}/${drawing.id}`
+					}
+				: undefined,
 			photos: photos.map((p) => ({ id: p.id, thumbUrl: `${assetBase}/${p.id}/thumb` }))
 		}
 	};
@@ -80,6 +88,7 @@ export const actions: Actions = {
 
 		// gewünschte Bilder
 		const wantAvatar = String(fd.get('avatarAssetId') ?? '').trim();
+		const wantDrawing = String(fd.get('drawingAssetId') ?? '').trim();
 		const wantPhotos = String(fd.get('photoAssetIds') ?? '')
 			.split(',')
 			.map((s) => s.trim())
@@ -88,10 +97,12 @@ export const actions: Actions = {
 
 		const currentPhotoIds = e.assets.filter((a) => a.kind === 'photo').map((a) => a.id);
 		const currentAvatarId = e.avatarAssetId ?? '';
+		const currentDrawingId = e.drawingAssetId ?? '';
 
 		// neu hinzugefügte Bilder: müssen zum Buch gehören und frei sein
 		const addedIds = [
 			...(wantAvatar && wantAvatar !== currentAvatarId ? [wantAvatar] : []),
+			...(wantDrawing && wantDrawing !== currentDrawingId ? [wantDrawing] : []),
 			...wantPhotos.filter((id) => !currentPhotoIds.includes(id))
 		];
 		const freshAssets = addedIds.length
@@ -111,11 +122,18 @@ export const actions: Actions = {
 				: wantAvatar && (okAdd.has(wantAvatar) || currentPhotoIds.includes(wantAvatar))
 					? wantAvatar
 					: null;
+		const finalDrawing =
+			wantDrawing === currentDrawingId
+				? currentDrawingId || null
+				: wantDrawing && okAdd.has(wantDrawing)
+					? wantDrawing
+					: null;
 		const finalPhotos = wantPhotos.filter((id) => currentPhotoIds.includes(id) || okAdd.has(id));
 
 		const removedAssetIds = [
 			...currentPhotoIds.filter((id) => !finalPhotos.includes(id)),
-			...(currentAvatarId && currentAvatarId !== finalAvatar ? [currentAvatarId] : [])
+			...(currentAvatarId && currentAvatarId !== finalAvatar ? [currentAvatarId] : []),
+			...(currentDrawingId && currentDrawingId !== finalDrawing ? [currentDrawingId] : [])
 		];
 
 		await db.transaction(async (tx) => {
@@ -125,6 +143,7 @@ export const actions: Actions = {
 					displayName,
 					closingLine: closingLine || null,
 					avatarAssetId: finalAvatar,
+					drawingAssetId: finalDrawing,
 					updatedAt: new Date()
 				})
 				.where(eq(entry.id, e.id));
@@ -143,6 +162,9 @@ export const actions: Actions = {
 			// Bilder anbinden / Position
 			if (finalAvatar) {
 				await tx.update(asset).set({ entryId: e.id }).where(eq(asset.id, finalAvatar));
+			}
+			if (finalDrawing) {
+				await tx.update(asset).set({ entryId: e.id }).where(eq(asset.id, finalDrawing));
 			}
 			for (let i = 0; i < finalPhotos.length; i++) {
 				await tx

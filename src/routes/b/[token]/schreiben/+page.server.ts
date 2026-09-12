@@ -84,13 +84,18 @@ export const actions: Actions = {
 
 		// hochgeladene Bilder validieren: gehören zum Buch, noch keinem Eintrag zugeordnet
 		const wantAvatar = String(fd.get('avatarAssetId') ?? '').trim();
+		const wantDrawing = String(fd.get('drawingAssetId') ?? '').trim();
 		const wantPhotos = String(fd.get('photoAssetIds') ?? '')
 			.split(',')
 			.map((s) => s.trim())
 			.filter(Boolean)
 			.slice(0, MAX_PHOTOS_PER_ENTRY);
 
-		const wantedIds = [...(wantAvatar ? [wantAvatar] : []), ...wantPhotos];
+		const wantedIds = [
+			...(wantAvatar ? [wantAvatar] : []),
+			...(wantDrawing ? [wantDrawing] : []),
+			...wantPhotos
+		];
 		const ownAssets = wantedIds.length
 			? await db.query.asset.findMany({
 					where: and(
@@ -103,6 +108,10 @@ export const actions: Actions = {
 		const avatarId =
 			wantAvatar && ownAssets.some((a) => a.id === wantAvatar && a.kind === 'avatar')
 				? wantAvatar
+				: null;
+		const drawingId =
+			wantDrawing && ownAssets.some((a) => a.id === wantDrawing && a.kind === 'drawing')
+				? wantDrawing
 				: null;
 		const photoIds = wantPhotos.filter((id) =>
 			ownAssets.some((a) => a.id === id && a.kind === 'photo')
@@ -144,7 +153,8 @@ export const actions: Actions = {
 					publishedAt: published ? new Date() : null,
 					editTokenHash: hashToken(editToken),
 					editScope: 'link',
-					avatarAssetId: avatarId
+					avatarAssetId: avatarId,
+					drawingAssetId: drawingId
 				})
 				.returning({ id: entry.id });
 
@@ -162,6 +172,9 @@ export const actions: Actions = {
 			// Bilder an den Eintrag binden (Polaroids mit leichter Zufallsdrehung)
 			if (avatarId) {
 				await tx.update(asset).set({ entryId: created.id }).where(eq(asset.id, avatarId));
+			}
+			if (drawingId) {
+				await tx.update(asset).set({ entryId: created.id }).where(eq(asset.id, drawingId));
 			}
 			for (let i = 0; i < photoIds.length; i++) {
 				await tx

@@ -42,6 +42,9 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		})),
 		entries: entries.map((e) => {
 			const avatar = e.avatarAssetId ? e.assets.find((a) => a.id === e.avatarAssetId) : undefined;
+			const drawing = e.drawingAssetId
+				? e.assets.find((a) => a.id === e.drawingAssetId)
+				: undefined;
 			const photos = e.assets
 				.filter((a) => a.kind === 'photo')
 				.sort((a, b) => ((a.position as Pos)?.order ?? 0) - ((b.position as Pos)?.order ?? 0));
@@ -51,6 +54,9 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 				closingLine: e.closingLine,
 				answers: Object.fromEntries(e.answers.map((a) => [a.questionId, a.valueText])),
 				avatar: avatar ? { thumb: `${assetBase}/${avatar.id}/thumb` } : null,
+				drawing: drawing
+					? { thumb: `${assetBase}/${drawing.id}/thumb`, full: `${assetBase}/${drawing.id}` }
+					: null,
 				photos: photos.map((p) => ({
 					id: p.id,
 					thumb: `${assetBase}/${p.id}/thumb`,
