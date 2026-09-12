@@ -1,6 +1,7 @@
 import { error, fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import { templates, defaultTemplateId, getTemplate } from '$lib/templates';
+import { bookThemes, defaultBookThemeId } from '$lib/bookThemes';
 import { ORIGIN, SIGNUP_MODE } from '$lib/server/env';
 import { createBook } from '$lib/server/books';
 import type { Actions, PageServerLoad } from './$types';
@@ -18,6 +19,7 @@ const schema = z.object({
 	subtitle: optionalText(120),
 	introText: optionalText(2000),
 	templateId: z.string().refine((id) => getTemplate(id) !== undefined, 'Unbekannte Vorlage.'),
+	theme: z.enum(bookThemes.map((t) => t.id) as [string, ...string[]]),
 	moderationMode: z.enum(['instant', 'review']),
 	recoveryEmail: z
 		.string()
@@ -42,7 +44,9 @@ export const load: PageServerLoad = () => {
 			description,
 			questions
 		})),
-		defaultTemplateId
+		defaultTemplateId,
+		themes: bookThemes,
+		defaultBookThemeId
 	};
 };
 
@@ -76,6 +80,7 @@ export const actions: Actions = {
 			subtitle: d.subtitle,
 			introText: d.introText,
 			templateId: d.templateId,
+			theme: d.theme,
 			moderationMode: d.moderationMode,
 			recoveryEmail: d.recoveryEmail,
 			passwords: { admin: d.passwordAdmin, read: d.passwordRead, write: d.passwordWrite }

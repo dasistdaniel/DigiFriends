@@ -9,6 +9,7 @@ export type CreateBookInput = {
 	subtitle?: string;
 	introText?: string;
 	templateId: string;
+	theme: string;
 	moderationMode: 'instant' | 'review';
 	recoveryEmail?: string;
 	passwords?: { admin?: string; read?: string; write?: string };
@@ -43,6 +44,7 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 				title: input.title,
 				subtitle: input.subtitle || null,
 				introText: input.introText || null,
+				design: { theme: input.theme },
 				moderationMode: input.moderationMode,
 				recoveryEmail: input.recoveryEmail || null
 			})
