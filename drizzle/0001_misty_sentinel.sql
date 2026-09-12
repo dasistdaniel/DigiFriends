@@ -1,0 +1,1 @@
+ALTER TABLE "book" ADD COLUMN "suspended_at" timestamp with time zone;

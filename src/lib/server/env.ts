@@ -19,6 +19,9 @@ export const MAX_UPLOAD_BYTES = Number(env.MAX_UPLOAD_BYTES) || 8 * 1024 * 1024;
 /** Obergrenzen je Eintrag. */
 export const MAX_PHOTOS_PER_ENTRY = Number(env.MAX_PHOTOS_PER_ENTRY) || 6;
 
+/** Passwort für den Betreiber-Bereich (/betreiber). Ohne gesetztes Passwort deaktiviert. */
+export const OPERATOR_PASSWORD = env.OPERATOR_PASSWORD?.trim() || null;
+
 /** Mailversand ist nur aktiv, wenn eine SMTP-URL gesetzt ist. */
 export const SMTP_URL = env.SMTP_URL?.trim() || null;
 export const MAIL_FROM = env.MAIL_FROM?.trim() || 'Freundebuch <noreply@example.com>';

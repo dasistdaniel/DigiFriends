@@ -44,6 +44,8 @@ export const book = pgTable('book', {
 	/** offener /schreiben-Link aktiv? Personalisierte Einladungen bleiben davon unberührt */
 	openWriteEnabled: boolean('open_write_enabled').notNull().default(true),
 	recoveryEmail: text('recovery_email'),
+	/** vom Betreiber gesperrt (Missbrauch etc.) – unabhängig vom eigenen status */
+	suspendedAt: timestamp('suspended_at', { withTimezone: true }),
 	createdAt,
 	updatedAt
 });

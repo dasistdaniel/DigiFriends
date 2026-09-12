@@ -8,6 +8,13 @@
       "when": 1789065015472,
       "tag": "0000_cuddly_doctor_octopus",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789226990040,
+      "tag": "0001_misty_sentinel",
+      "breakpoints": true
     }
   ]
 }
