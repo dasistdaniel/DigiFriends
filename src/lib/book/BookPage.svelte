@@ -1,6 +1,20 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
+	/** dezente Eckdoodles, die auf jeder Seite ohne eigene Ornamente erscheinen */
+	const doodlePaths = [
+		// Herz
+		'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
+		// Stern
+		'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z',
+		// Funkeln
+		'M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zM11.5 9.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z',
+		// Blatt
+		'M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z',
+		// Papierflieger
+		'M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'
+	];
+
 	let {
 		side = 'left',
 		number,
@@ -9,16 +23,31 @@
 	}: {
 		side?: 'left' | 'right';
 		number?: number;
-		/** dekorative Ebene hinter dem Text (Blätter, Bäume …) */
+		/** dekorative Ebene hinter dem Text (Blätter, Bäume …); ohne Angabe erscheint ein Eckdoodle */
 		ornaments?: Snippet;
 		children: Snippet;
 	} = $props();
+
+	const doodleSeed = $derived(number ?? 0);
+	const doodlePath = $derived(
+		doodlePaths[((doodleSeed % doodlePaths.length) + doodlePaths.length) % doodlePaths.length]
+	);
+	const doodleRotate = $derived(((doodleSeed * 37) % 24) - 12);
 </script>
 
 <div class="page page--{side}" data-side={side}>
 	<div class="page__grain" aria-hidden="true"></div>
 	{#if ornaments}
 		<div class="page__ornaments" aria-hidden="true">{@render ornaments()}</div>
+	{:else}
+		<svg
+			class="page__doodle"
+			viewBox="0 0 24 24"
+			aria-hidden="true"
+			style:transform={`rotate(${doodleRotate}deg)`}
+		>
+			<path d={doodlePath} />
+		</svg>
 	{/if}
 	<div class="page__content">
 		{@render children()}
@@ -74,6 +103,23 @@
 		pointer-events: none;
 		color: var(--ochre);
 		opacity: 0.5;
+	}
+
+	.page__doodle {
+		position: absolute;
+		top: clamp(0.9rem, 3vw, 1.7rem);
+		width: clamp(1.5rem, 1.2rem + 1.5vw, 2.1rem);
+		height: clamp(1.5rem, 1.2rem + 1.5vw, 2.1rem);
+		fill: currentColor;
+		color: var(--ochre);
+		opacity: 0.34;
+		pointer-events: none;
+	}
+	.page--left .page__doodle {
+		left: clamp(0.9rem, 3vw, 1.7rem);
+	}
+	.page--right .page__doodle {
+		right: clamp(0.9rem, 3vw, 1.7rem);
 	}
 
 	.page__content {
