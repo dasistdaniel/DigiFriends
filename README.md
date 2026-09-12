@@ -6,15 +6,15 @@ einem VPS.
 
 - Konzept: [`KONZEPT.md`](./KONZEPT.md)
 - Ausgangsidee: [`idee.md`](./idee.md)
-- Stilreferenz: `Screenshot 2026-09-10 194259.png` (KI-generiertes Mockup, nur Beispiel)
 
 > Projektname „DigiFriends" ist noch nicht final.
 
 ## Status
 
-Buch anlegen, Lesen/Schreiben mit Foto-Upload, Eintrag bearbeiten, Admin-Oberfläche
-(Einträge/Fragen/Buch/Zugänge) und Deployment stehen. Offene Punkte: Zeichen-Canvas,
-Design-Optionen, E-Mail-Recovery, Export, DSGVO-Seiten – siehe `KONZEPT.md` (§14/§15).
+Buch anlegen (inkl. Einband-Design), Lesen/Schreiben mit Foto-Upload, Eintrag
+bearbeiten, Admin-Oberfläche (Einträge/Fragen/Buch/Zugänge), Betreiber-Bereich
+(Bücher einsehen/sperren, Statistik), Impressum/Datenschutz und Deployment stehen.
+Offene Punkte: Zeichen-Canvas, E-Mail-Recovery, Export – siehe `KONZEPT.md` (§14/§15).
 
 ## Stack
 
@@ -37,3 +37,12 @@ Weitere Skripte: `npm run check`, `npm run lint`, `npm run format`, `npm test`.
 
 Siehe [`DEPLOYMENT.md`](./DEPLOYMENT.md) – `docker compose up -d --build` auf einem
 eigenen Server, TLS/Domain per Reverse Proxy davor.
+
+## Lizenz & Bildnachweis
+
+Code steht unter der [MIT-Lizenz](./LICENSE). Die Schriften (Oswald, Crimson Pro,
+Kalam, selbst gehostet unter `static/fonts/`) sind Google Fonts unter der
+[SIL Open Font License](https://openfontlicense.org/). Der Holz-Hintergrund
+(`static/images/desk-oak.webp`) ist ein Foto von Simon Berger auf
+[Unsplash](https://unsplash.com/de/fotos/JH_R66BihvA), genutzt unter der
+[Unsplash-Lizenz](https://unsplash.com/de/lizenz).
