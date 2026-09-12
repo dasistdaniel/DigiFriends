@@ -181,8 +181,14 @@
 <style>
 	.stage {
 		/* gemeinsame Bezugsgröße für Cover und aufgeschlagenes Buch */
-		--book-max: 60rem;
-		--spread-w: min(96vw, var(--book-max));
+		--book-max: 76rem;
+		--stage-pad: clamp(1rem, 4vw, 3rem);
+		/* Höhe der Toolbar + Abstand zum Buch, damit das Buch bei knapper Bildschirmhöhe nicht überläuft */
+		--toolbar-block: 3.6rem;
+		--avail-h: calc(100vh - var(--footer-h) - 2 * var(--stage-pad) - var(--toolbar-block));
+		/* Breite so groß wie möglich, aber weder breiter noch höher als der sichtbare Bereich */
+		--spread-w: min(96vw, var(--book-max), calc(var(--avail-h) * 2 / 1.34));
+		--spread-w-single: min(96vw, 34rem, calc(var(--avail-h) / 1.36));
 
 		display: flex;
 		flex-direction: column;
@@ -191,7 +197,7 @@
 		gap: 1.2rem;
 		width: 100%;
 		min-height: 100%;
-		padding: clamp(1rem, 4vw, 3rem) 16px;
+		padding: var(--stage-pad) 16px;
 		background: radial-gradient(120% 80% at 50% 0%, transparent, var(--room-vignette));
 
 		/* Einband-Theme (Standard = klassisches Leder), überschrieben je data-book-theme unten */
@@ -344,6 +350,9 @@
 		position: relative;
 		width: var(--spread-w);
 	}
+	.book--single {
+		width: var(--spread-w-single);
+	}
 	.book__spread {
 		position: relative;
 		aspect-ratio: 2 / 1.34;
@@ -353,7 +362,7 @@
 	}
 	.book--single .book__spread {
 		aspect-ratio: 1 / 1.36;
-		max-width: 30rem;
+		max-width: var(--spread-w-single);
 		margin-inline: auto;
 	}
 	.book__pages {
