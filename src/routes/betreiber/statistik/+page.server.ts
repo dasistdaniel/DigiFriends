@@ -25,6 +25,18 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const since7 = daysAgo(7);
 	const since30 = daysAgo(30);
 
+	const ACTIVITY_DAYS = 14;
+	const dateKey = (d: Date) => d.toISOString().slice(0, 10);
+	const activityMap = new Map<string, number>();
+	for (let i = ACTIVITY_DAYS - 1; i >= 0; i--) {
+		activityMap.set(dateKey(daysAgo(i)), 0);
+	}
+	for (const e of entries) {
+		const key = dateKey(e.createdAt);
+		if (activityMap.has(key)) activityMap.set(key, (activityMap.get(key) ?? 0) + 1);
+	}
+	const activity = Array.from(activityMap.entries()).map(([date, count]) => ({ date, count }));
+
 	const entryCountByBook = new Map<string, number>();
 	for (const e of entries) {
 		if (e.state !== 'published') continue;
@@ -60,6 +72,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
 			avatars: assets.filter((a) => a.kind === 'avatar').length,
 			drawings: assets.filter((a) => a.kind === 'drawing').length
 		},
-		topBooks
+		topBooks,
+		activity
 	};
 };
