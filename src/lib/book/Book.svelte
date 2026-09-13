@@ -104,6 +104,15 @@
 		if (dx < -45) next();
 		else if (dx > 45) prev();
 	}
+
+	/** Klick auf eine leere Stelle der Seite blättert vor/zurück – Klicks auf Buttons/Links bleiben unberührt. */
+	function onspreadclick(e: MouseEvent) {
+		const target = e.target as HTMLElement;
+		if (target.closest('button, a, input, textarea, select, [role="button"]')) return;
+		const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+		if (e.clientX - rect.left < rect.width / 2) prev();
+		else next();
+	}
 </script>
 
 <svelte:window {onkeydown} />
@@ -114,8 +123,11 @@
 			<button
 				type="button"
 				class="cover cover--back"
-				onclick={() => (open = true)}
-				aria-label="Buch wieder aufschlagen"
+				onclick={() => {
+					goto(0);
+					open = true;
+				}}
+				aria-label="Buch von vorne aufschlagen"
 			>
 				<span class="cover__edge" aria-hidden="true"></span>
 				<span class="cover__spine" aria-hidden="true"></span>
@@ -124,7 +136,7 @@
 					<span class="cover__blurb-text">Gemeinsame Erinnerungen, gesammelt in einem Buch.</span>
 				</span>
 				<p class="cover__thanks hand">Danke, dass du DigiFriends nutzt!</p>
-				<span class="cover__hint label">Weiterlesen</span>
+				<span class="cover__hint label">Zum Anfang</span>
 			</button>
 		{:else}
 			<button
@@ -155,7 +167,8 @@
 			{onpointerdown}
 			{onpointerup}
 		>
-			<div class="book__spread">
+			<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+			<div class="book__spread" onclick={onspreadclick}>
 				{#key viewStart}
 					<div
 						class="book__pages"
@@ -443,6 +456,7 @@
 		border-radius: 6px;
 		box-shadow: 0 30px 60px -22px var(--shadow-book);
 		overflow: hidden;
+		cursor: pointer;
 	}
 	.book--single .book__spread {
 		aspect-ratio: 1 / 1.36;
