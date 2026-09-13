@@ -42,6 +42,8 @@
 	);
 	const atStart = $derived(viewStart <= 0);
 	const atEnd = $derived(viewStart + perView >= pageCount);
+	/** Zeigt beim Schließen die Rückseite, wenn man wirklich bis zum Ende geblättert hat. */
+	const closedFace = $derived(atEnd && !atStart ? 'back' : 'front');
 	const totalSpreads = $derived(Math.ceil(pageCount / perView));
 	const currentSpread = $derived(Math.floor(viewStart / perView) + 1);
 	const dur = $derived(reduced ? 0 : 340);
@@ -108,37 +110,72 @@
 
 {#if !open}
 	<div class="stage stage--closed" data-book-theme={theme}>
-		<button type="button" class="cover" onclick={() => (open = true)} aria-label="Buch aufschlagen">
-			<span class="cover__edge" aria-hidden="true"></span>
-			<span class="cover__spine" aria-hidden="true">
-				<span class="cover__spine-text">DigiFriends</span>
-				<svg class="cover__spine-barcode" viewBox="0 0 20 40">
-					<rect width="20" height="40" rx="1" fill="#f4efe2" />
-					<rect x="2" y="3" width="1" height="27" fill="#181818" />
-					<rect x="4" y="3" width="2" height="27" fill="#181818" />
-					<rect x="7.5" y="3" width="1" height="27" fill="#181818" />
-					<rect x="9.5" y="3" width="1.5" height="27" fill="#181818" />
-					<rect x="12" y="3" width="1" height="27" fill="#181818" />
-					<rect x="14" y="3" width="2" height="27" fill="#181818" />
-					<rect x="17" y="3" width="1" height="27" fill="#181818" />
-					<text
-						x="10"
-						y="37"
-						text-anchor="middle"
-						font-size="5"
-						font-family="monospace"
-						fill="#181818">DF·26</text
-					>
-				</svg>
-			</span>
-			<span class="cover__plate">
-				<span class="cover__ornament" aria-hidden="true">✦</span>
-				<span class="cover__title">{title}</span>
-				{#if subtitle}<span class="cover__subtitle">{subtitle}</span>{/if}
-			</span>
-			<span class="cover__hint label">Aufschlagen</span>
-		</button>
-		<p class="desk-note hand">Danke, dass du DigiFriends nutzt!</p>
+		<div class="closed-group">
+			<p class="desk-note hand">Danke, dass du DigiFriends nutzt!</p>
+			{#if closedFace === 'back'}
+				<button
+					type="button"
+					class="cover cover--back"
+					onclick={() => (open = true)}
+					aria-label="Buch wieder aufschlagen"
+				>
+					<span class="cover__edge" aria-hidden="true"></span>
+					<span class="cover__spine" aria-hidden="true"></span>
+					<span class="cover__blurb">
+						<span class="cover__ornament" aria-hidden="true">✦</span>
+						<span class="cover__blurb-text">Gemeinsame Erinnerungen, gesammelt in einem Buch.</span>
+					</span>
+					<span class="cover__backplate">
+						<svg class="cover__barcode" viewBox="0 0 70 40" aria-hidden="true">
+							<rect width="70" height="40" rx="2" fill="#f4efe2" />
+							<rect x="4" y="4" width="1.5" height="28" fill="#181818" />
+							<rect x="7" y="4" width="1" height="28" fill="#181818" />
+							<rect x="9.5" y="4" width="2.5" height="28" fill="#181818" />
+							<rect x="14" y="4" width="1" height="28" fill="#181818" />
+							<rect x="17" y="4" width="1" height="28" fill="#181818" />
+							<rect x="20" y="4" width="2" height="28" fill="#181818" />
+							<rect x="24" y="4" width="1" height="28" fill="#181818" />
+							<rect x="27" y="4" width="1.5" height="28" fill="#181818" />
+							<rect x="31" y="4" width="1" height="28" fill="#181818" />
+							<rect x="34" y="4" width="2.5" height="28" fill="#181818" />
+							<rect x="39" y="4" width="1" height="28" fill="#181818" />
+							<rect x="42" y="4" width="1" height="28" fill="#181818" />
+							<rect x="45" y="4" width="2" height="28" fill="#181818" />
+							<rect x="49" y="4" width="1" height="28" fill="#181818" />
+							<rect x="52" y="4" width="1.5" height="28" fill="#181818" />
+							<rect x="56" y="4" width="1" height="28" fill="#181818" />
+							<rect x="59" y="4" width="2" height="28" fill="#181818" />
+							<rect x="63" y="4" width="1" height="28" fill="#181818" />
+							<text
+								x="35"
+								y="37"
+								text-anchor="middle"
+								font-size="6"
+								font-family="monospace"
+								fill="#181818">DF·26</text
+							>
+						</svg>
+					</span>
+					<span class="cover__hint label">Weiterlesen</span>
+				</button>
+			{:else}
+				<button
+					type="button"
+					class="cover"
+					onclick={() => (open = true)}
+					aria-label="Buch aufschlagen"
+				>
+					<span class="cover__edge" aria-hidden="true"></span>
+					<span class="cover__spine" aria-hidden="true"></span>
+					<span class="cover__plate">
+						<span class="cover__ornament" aria-hidden="true">✦</span>
+						<span class="cover__title">{title}</span>
+						{#if subtitle}<span class="cover__subtitle">{subtitle}</span>{/if}
+					</span>
+					<span class="cover__hint label">Aufschlagen</span>
+				</button>
+			{/if}
+		</div>
 	</div>
 {:else}
 	<div class="stage" data-book-theme={theme}>
@@ -326,30 +363,9 @@
 	.cover__spine {
 		position: absolute;
 		inset: 0 auto 0 0;
-		width: 22px;
+		width: 16px;
 		border-radius: 6px 0 0 6px;
 		background: linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.05));
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: space-between;
-		padding: 14% 0 8%;
-	}
-	.cover__spine-text {
-		writing-mode: vertical-rl;
-		transform: rotate(180deg);
-		font-family: var(--font-label);
-		font-size: 0.5rem;
-		letter-spacing: 0.08em;
-		color: var(--cover-ink);
-		opacity: 0.55;
-		white-space: nowrap;
-	}
-	.cover__spine-barcode {
-		width: 15px;
-		height: auto;
-		opacity: 0.9;
-		border-radius: 1px;
 	}
 	.cover__edge {
 		position: absolute;
@@ -410,10 +426,49 @@
 		text-shadow: var(--cover-title-shadow);
 	}
 
-	/* Notizzettel, der lose unter dem geschlossenen Buch auf dem Schreibtisch liegt. */
+	/* ------------------------------------------------------------ Rückseite */
+	.cover__blurb {
+		position: absolute;
+		inset: 16% 16% auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.6rem;
+		text-align: center;
+	}
+	.cover__blurb-text {
+		font-family: var(--font-label);
+		font-size: var(--step--1);
+		letter-spacing: 0.03em;
+		line-height: 1.6;
+		color: var(--cover-ink);
+		text-shadow: var(--cover-title-shadow);
+		opacity: 0.85;
+	}
+	.cover__backplate {
+		position: absolute;
+		right: 10%;
+		bottom: 10%;
+	}
+	.cover__barcode {
+		width: 4.4rem;
+		height: auto;
+		border-radius: 1px;
+	}
+
+	/* Notizzettel: liegt auf dem Schreibtisch, das Buch liegt teilweise darauf. */
+	.closed-group {
+		position: relative;
+		display: inline-flex;
+	}
 	.desk-note {
+		position: absolute;
+		left: 50%;
+		bottom: -0.9rem;
+		z-index: -1;
 		margin: 0;
-		max-width: 16rem;
+		width: max-content;
+		max-width: 14rem;
 		text-align: center;
 		font-size: var(--step-0);
 		color: var(--ink-700);
@@ -422,7 +477,7 @@
 		border-radius: 3px;
 		padding: 0.6rem 1rem;
 		box-shadow: 0 8px 16px -8px var(--shadow-page);
-		transform: rotate(-2deg);
+		transform: translateX(-40%) rotate(-5deg);
 	}
 
 	/* ----------------------------------------------------------------- Book */
