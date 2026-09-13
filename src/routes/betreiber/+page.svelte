@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -7,6 +8,7 @@
 	const books = $derived(data.books);
 	const message = $derived(form && 'message' in form ? form.message : undefined);
 
+	let confirmDelete = $state<string | null>(null);
 	let query = $state('');
 	const filtered = $derived(
 		query.trim()
@@ -79,13 +81,38 @@
 						</span>
 						{#if b.suspended}<span class="badge">Gesperrt</span>{/if}
 					</div>
-					<form method="POST" action="?/toggleSuspend" use:enhance class="row__actions">
-						<input type="hidden" name="id" value={b.id} />
-						<input type="hidden" name="to" value={b.suspended ? 'unsuspend' : 'suspend'} />
-						<button class="btn" class:btn--danger={!b.suspended} type="submit">
-							{b.suspended ? 'Freigeben' : 'Sperren'}
-						</button>
-					</form>
+					<div class="row__actions">
+						<a class="btn" href={resolve('/betreiber/[bookId]', { bookId: b.id })}>Ansehen</a>
+						<form method="POST" action="?/toggleSuspend" use:enhance>
+							<input type="hidden" name="id" value={b.id} />
+							<input type="hidden" name="to" value={b.suspended ? 'unsuspend' : 'suspend'} />
+							<button class="btn" class:btn--danger={!b.suspended} type="submit">
+								{b.suspended ? 'Freigeben' : 'Sperren'}
+							</button>
+						</form>
+						{#if confirmDelete === b.id}
+							<form
+								method="POST"
+								action="?/deleteBook"
+								use:enhance={() => {
+									return async ({ update }) => {
+										confirmDelete = null;
+										await update();
+									};
+								}}
+							>
+								<input type="hidden" name="id" value={b.id} />
+								<button class="btn btn--danger">Wirklich löschen</button>
+							</form>
+							<button class="btn" type="button" onclick={() => (confirmDelete = null)}>
+								Abbrechen
+							</button>
+						{:else}
+							<button class="btn btn--danger" type="button" onclick={() => (confirmDelete = b.id)}>
+								Löschen
+							</button>
+						{/if}
+					</div>
 				</li>
 			{/each}
 		</ul>
@@ -223,6 +250,15 @@
 		letter-spacing: 0.04em;
 		color: var(--danger);
 	}
+	.row__actions {
+		display: flex;
+		gap: 0.4rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+	.row__actions form {
+		display: contents;
+	}
 	.btn {
 		font-family: var(--font-label);
 		font-size: var(--step--1);
@@ -233,6 +269,8 @@
 		border-radius: 999px;
 		padding: 0.45rem 1rem;
 		cursor: pointer;
+		text-decoration: none;
+		display: inline-block;
 	}
 	.btn--danger {
 		color: var(--danger);

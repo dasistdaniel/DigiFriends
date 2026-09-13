@@ -1,7 +1,10 @@
 import { fail, redirect } from '@sveltejs/kit';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { book } from '$lib/server/db/schema';
+import { UPLOAD_DIR } from '$lib/server/env';
 import {
 	clearOperatorSession,
 	isOperatorSession,
@@ -66,5 +69,16 @@ export const actions: Actions = {
 			.where(eq(book.id, id));
 
 		return { saved: true };
+	},
+
+	deleteBook: async ({ request, cookies }) => {
+		if (!isOperatorSession(cookies)) return fail(403);
+		const id = String((await request.formData()).get('id') ?? '');
+		if (!id) return fail(400);
+
+		await db.delete(book).where(eq(book.id, id));
+		await rm(join(UPLOAD_DIR, id), { recursive: true, force: true });
+
+		return { deleted: id };
 	}
 };
