@@ -9,6 +9,7 @@
 	const book = $derived(data.locked ? null : data.book);
 	const questions = $derived(data.locked ? [] : data.questions);
 	const entries = $derived(data.locked ? [] : data.entries);
+	const gallery = $derived(data.locked ? [] : data.gallery);
 
 	const leftQuestions = $derived(questions.filter((q) => q.section === 'left'));
 	const rightQuestions = $derived(questions.filter((q) => q.section === 'right'));
@@ -16,7 +17,10 @@
 	const TOC_PER_PAGE = 10;
 	const tocPages = $derived(Math.max(1, Math.ceil(entries.length / TOC_PER_PAGE)));
 	const firstEntryPage = $derived(1 + tocPages);
-	const pageCount = $derived(firstEntryPage + entries.length * 2);
+	const firstGalleryPage = $derived(firstEntryPage + entries.length * 2);
+	const GALLERY_PER_PAGE = 8;
+	const galleryPages = $derived(Math.ceil(gallery.length / GALLERY_PER_PAGE));
+	const pageCount = $derived(firstGalleryPage + galleryPages);
 
 	function entryStartPage(entryIndex: number) {
 		return firstEntryPage + entryIndex * 2;
@@ -78,10 +82,21 @@
 								</li>
 							{/each}
 						</ol>
+						{#if tocIndex === tocPages - 1 && gallery.length > 0}
+							<button
+								type="button"
+								class="toc__link toc__link--gallery"
+								onclick={() => bookRef?.goto(firstGalleryPage)}
+							>
+								<span class="toc__name">Galerie</span>
+								<span class="toc__dots" aria-hidden="true"></span>
+								<span class="toc__page">{firstGalleryPage + 1}</span>
+							</button>
+						{/if}
 					{/if}
 				</div>
 			</BookPage>
-		{:else}
+		{:else if i < firstGalleryPage}
 			{@const idx = i - firstEntryPage}
 			{@const e = entries[Math.floor(idx / 2)]}
 			{@const side = idx % 2 === 0 ? 'left' : 'right'}
@@ -141,6 +156,29 @@
 							{e.closingLine || `Alles Liebe, ${e.displayName}`}
 						</p>
 					{/if}
+				</div>
+			</BookPage>
+		{:else}
+			{@const galleryIndex = i - firstGalleryPage}
+			{@const slice = gallery.slice(
+				galleryIndex * GALLERY_PER_PAGE,
+				galleryIndex * GALLERY_PER_PAGE + GALLERY_PER_PAGE
+			)}
+			<BookPage side={galleryIndex % 2 === 0 ? 'left' : 'right'} number={i + 1} theme={book.theme}>
+				<div class="gallery-page">
+					{#if galleryIndex === 0}<h2 class="reading__title">Galerie</h2>{/if}
+					<div class="wall">
+						{#each slice as item, k (item.id)}
+							<button
+								type="button"
+								class="polaroid polaroid--wall"
+								style="--rot: {item.rotate}deg; --jitter: {((k % 5) - 2) * 7}px"
+								onclick={() => (lightbox = item.full)}
+							>
+								<img src={item.thumb} alt={item.alt} />
+							</button>
+						{/each}
+					</div>
 				</div>
 			</BookPage>
 		{/if}
@@ -213,6 +251,16 @@
 	.toc__link:hover .toc__name {
 		color: var(--ochre-deep);
 	}
+	.toc__link--gallery {
+		margin-top: 0.6rem;
+		padding-top: 0.7rem;
+		border-top: 1px solid var(--paper-line);
+		font-family: var(--font-label);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		font-size: var(--step--1);
+		color: var(--ink-500);
+	}
 	.toc__dots {
 		flex: 1;
 		border-bottom: 1.5px dotted var(--paper-line);
@@ -274,6 +322,30 @@
 		height: 100%;
 		min-height: 0;
 		object-fit: cover;
+	}
+
+	.gallery-page {
+		height: 100%;
+	}
+	.wall {
+		display: flex;
+		flex-wrap: wrap;
+		align-content: flex-start;
+		justify-content: center;
+		gap: 1.2rem 1rem;
+		padding-top: 0.6rem;
+	}
+	.polaroid--wall {
+		transform: rotate(var(--rot, 0deg)) translateY(var(--jitter, 0px));
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+	.polaroid--wall:hover,
+	.polaroid--wall:focus-visible {
+		transform: rotate(0deg) translateY(calc(var(--jitter, 0px) - 4px));
+		box-shadow: 0 12px 22px -8px var(--shadow-page);
+		z-index: 1;
 	}
 
 	.lightbox {
