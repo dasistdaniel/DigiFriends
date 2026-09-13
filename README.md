@@ -12,10 +12,11 @@ einem VPS.
 
 ## Status
 
-Buch anlegen (inkl. Einband-Design), Lesen/Schreiben mit Foto-Upload, Eintrag
-bearbeiten, Admin-Oberfläche (Einträge/Fragen/Buch/Zugänge), Betreiber-Bereich
-(Bücher einsehen/sperren, Statistik), Impressum/Datenschutz und Deployment stehen.
-Offene Punkte: Zeichen-Canvas, E-Mail-Recovery, Export – siehe `KONZEPT.md` (§14/§15).
+Buch anlegen (inkl. Einband-Design), Lesen/Schreiben mit Foto-Upload und Zeichen-Canvas
+(mehrere Zeichnungen pro Eintrag, mit Füllmodus), Eintrag bearbeiten, Admin-Oberfläche
+(Einträge/Fragen/Buch/Zugänge), Betreiber-Bereich (Bücher einsehen/sperren/löschen,
+Links neu erzeugen, Statistik), Impressum/Datenschutz und Deployment stehen.
+Offene Punkte: E-Mail-Recovery, PDF/ZIP-Export – siehe `KONZEPT.md` (§14/§15).
 
 ## Stack
 
