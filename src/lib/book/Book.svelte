@@ -68,8 +68,10 @@
 		leaf = next;
 		onnavigate?.(leaf);
 	}
+	/** Am Buchende schließt der Weiter-Pfeil das Buch, statt untätig zu bleiben. */
 	function next() {
 		if (!atEnd) goto(viewStart + perView);
+		else open = false;
 	}
 	/** Am Buchanfang schließt der Zurück-Pfeil das Buch, statt untätig zu bleiben. */
 	function prev() {
@@ -108,7 +110,27 @@
 	<div class="stage stage--closed" data-book-theme={theme}>
 		<button type="button" class="cover" onclick={() => (open = true)} aria-label="Buch aufschlagen">
 			<span class="cover__edge" aria-hidden="true"></span>
-			<span class="cover__spine" aria-hidden="true"></span>
+			<span class="cover__spine" aria-hidden="true">
+				<span class="cover__spine-text">DigiFriends</span>
+				<svg class="cover__spine-barcode" viewBox="0 0 20 40">
+					<rect width="20" height="40" rx="1" fill="#f4efe2" />
+					<rect x="2" y="3" width="1" height="27" fill="#181818" />
+					<rect x="4" y="3" width="2" height="27" fill="#181818" />
+					<rect x="7.5" y="3" width="1" height="27" fill="#181818" />
+					<rect x="9.5" y="3" width="1.5" height="27" fill="#181818" />
+					<rect x="12" y="3" width="1" height="27" fill="#181818" />
+					<rect x="14" y="3" width="2" height="27" fill="#181818" />
+					<rect x="17" y="3" width="1" height="27" fill="#181818" />
+					<text
+						x="10"
+						y="37"
+						text-anchor="middle"
+						font-size="5"
+						font-family="monospace"
+						fill="#181818">DF·26</text
+					>
+				</svg>
+			</span>
 			<span class="cover__plate">
 				<span class="cover__ornament" aria-hidden="true">✦</span>
 				<span class="cover__title">{title}</span>
@@ -116,6 +138,7 @@
 			</span>
 			<span class="cover__hint label">Aufschlagen</span>
 		</button>
+		<p class="desk-note hand">Danke, dass du DigiFriends nutzt!</p>
 	</div>
 {:else}
 	<div class="stage" data-book-theme={theme}>
@@ -158,8 +181,7 @@
 				type="button"
 				class="nav nav--next"
 				onclick={next}
-				disabled={atEnd}
-				aria-label="Weiterblättern"
+				aria-label={atEnd ? 'Buch schließen' : 'Weiterblättern'}
 			>
 				›
 			</button>
@@ -304,9 +326,30 @@
 	.cover__spine {
 		position: absolute;
 		inset: 0 auto 0 0;
-		width: 16px;
+		width: 22px;
 		border-radius: 6px 0 0 6px;
 		background: linear-gradient(90deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.05));
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		padding: 14% 0 8%;
+	}
+	.cover__spine-text {
+		writing-mode: vertical-rl;
+		transform: rotate(180deg);
+		font-family: var(--font-label);
+		font-size: 0.5rem;
+		letter-spacing: 0.08em;
+		color: var(--cover-ink);
+		opacity: 0.55;
+		white-space: nowrap;
+	}
+	.cover__spine-barcode {
+		width: 15px;
+		height: auto;
+		opacity: 0.9;
+		border-radius: 1px;
 	}
 	.cover__edge {
 		position: absolute;
@@ -365,6 +408,21 @@
 		letter-spacing: 0.14em;
 		opacity: 0.7;
 		text-shadow: var(--cover-title-shadow);
+	}
+
+	/* Notizzettel, der lose unter dem geschlossenen Buch auf dem Schreibtisch liegt. */
+	.desk-note {
+		margin: 0;
+		max-width: 16rem;
+		text-align: center;
+		font-size: var(--step-0);
+		color: var(--ink-700);
+		background: var(--paper-100);
+		border: 1px solid var(--paper-edge);
+		border-radius: 3px;
+		padding: 0.6rem 1rem;
+		box-shadow: 0 8px 16px -8px var(--shadow-page);
+		transform: rotate(-2deg);
 	}
 
 	/* ----------------------------------------------------------------- Book */
@@ -440,10 +498,6 @@
 	}
 	.nav--next {
 		right: -0.6rem;
-	}
-	.nav:disabled {
-		opacity: 0.3;
-		cursor: default;
 	}
 	@media (min-width: 640px) {
 		.nav--prev {
