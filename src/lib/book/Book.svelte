@@ -71,8 +71,10 @@
 	function next() {
 		if (!atEnd) goto(viewStart + perView);
 	}
+	/** Am Buchanfang schließt der Zurück-Pfeil das Buch, statt untätig zu bleiben. */
 	function prev() {
 		if (!atStart) goto(viewStart - perView);
+		else open = false;
 	}
 
 	function onkeydown(e: KeyboardEvent) {
@@ -148,8 +150,7 @@
 				type="button"
 				class="nav nav--prev"
 				onclick={prev}
-				disabled={atStart}
-				aria-label="Zurückblättern"
+				aria-label={atStart ? 'Buch schließen' : 'Zurückblättern'}
 			>
 				‹
 			</button>
@@ -205,7 +206,6 @@
 		--cover-sheen: rgba(255, 240, 220, 0.16);
 		--cover-sheen-soft: rgba(255, 240, 220, 0.08);
 		--cover-ink: rgba(247, 241, 225, 0.94);
-		--cover-plate-border: rgba(247, 241, 225, 0.35);
 		--cover-title-shadow: none;
 	}
 
@@ -229,7 +229,6 @@
 		--cover-sheen: rgba(255, 255, 255, 0.32);
 		--cover-sheen-soft: rgba(255, 255, 255, 0.16);
 		--cover-ink: #fffaf0;
-		--cover-plate-border: rgba(255, 255, 255, 0.55);
 		--cover-title-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 		--ochre: #f2994a;
 		--ochre-deep: #d6336c;
@@ -246,7 +245,6 @@
 		--cover-sheen: rgba(255, 255, 255, 0.14);
 		--cover-sheen-soft: rgba(255, 255, 255, 0.07);
 		--cover-ink: rgba(238, 250, 250, 0.94);
-		--cover-plate-border: rgba(238, 250, 250, 0.32);
 		--ochre: #3fb8c4;
 		--ochre-deep: #1f8a94;
 		/* Frisches, klares Papier statt Sepia – passend zu "modern und klar" */
@@ -262,7 +260,6 @@
 		--cover-sheen: rgba(255, 221, 150, 0.12);
 		--cover-sheen-soft: rgba(255, 221, 150, 0.06);
 		--cover-ink: #f4e3b2;
-		--cover-plate-border: rgba(244, 227, 178, 0.4);
 		--ochre: #d4af37;
 		--ochre-deep: #b8892f;
 		/* Edles Creme-Gold-Papier statt Leder-Sepia – passend zu "edel und ruhig" */
@@ -322,21 +319,27 @@
 			var(--paper-edge) 2px 3px
 		);
 	}
+	/* Titel als aufgeklebter weißer Sticker – wirkt auf jedem Einband-Theme gut,
+	   deshalb bewusst nicht themenabhängig gefärbt. */
 	.cover__plate {
 		position: absolute;
 		inset: 16% 12% auto;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.6rem;
-		padding: clamp(1.4rem, 1rem + 3vw, 2.4rem) 1.2rem;
-		border: 1px solid var(--cover-plate-border);
-		border-radius: 4px;
+		gap: 0.5rem;
+		padding: clamp(1.2rem, 0.9rem + 2.6vw, 2.1rem) 1.2rem;
+		background: #fdfcf8;
+		border-radius: 8px;
+		box-shadow:
+			0 14px 26px -12px rgba(0, 0, 0, 0.4),
+			0 2px 5px rgba(0, 0, 0, 0.18);
+		transform: rotate(-1.4deg);
+		color: var(--ink-900);
 	}
 	.cover__ornament {
-		font-size: 1.5rem;
-		opacity: 0.8;
-		text-shadow: var(--cover-title-shadow);
+		font-size: 1.4rem;
+		color: var(--ochre-deep);
 	}
 	.cover__title {
 		font-family: var(--font-hand);
@@ -344,15 +347,13 @@
 		font-weight: 700;
 		text-align: center;
 		line-height: 1.1;
-		text-shadow: var(--cover-title-shadow);
 	}
 	.cover__subtitle {
 		font-family: var(--font-label);
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
 		font-size: var(--step--1);
-		opacity: 0.8;
-		text-shadow: var(--cover-title-shadow);
+		color: var(--ink-500);
 	}
 	.cover__hint {
 		position: absolute;
