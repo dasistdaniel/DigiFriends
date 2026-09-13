@@ -97,7 +97,7 @@
 />
 
 {#snippet intro()}
-	<BookPage side="left" number={1}>
+	<BookPage side="left" number={1} {theme}>
 		<div class="reading">
 			<h2 class="reading__title">Willkommen</h2>
 			<p>
@@ -111,7 +111,7 @@
 {/snippet}
 
 {#snippet contents()}
-	<BookPage side="right" number={2}>
+	<BookPage side="right" number={2} {theme}>
 		<div class="reading">
 			<h2 class="reading__title">Inhalt</h2>
 			<ol class="toc">
@@ -128,7 +128,7 @@
 {/snippet}
 
 {#snippet entryLeft()}
-	<BookPage side="left" number={3}>
+	<BookPage side="left" number={3} {theme}>
 		<div class="entry">
 			<div class="entry__head">
 				<p class="entry__from label">Eintrag von: <span class="hand">Anna Berger</span></p>
@@ -147,7 +147,7 @@
 {/snippet}
 
 {#snippet entryRight()}
-	<BookPage side="right" number={4}>
+	<BookPage side="right" number={4} {theme}>
 		<div class="entry">
 			<div class="polaroids">
 				<button

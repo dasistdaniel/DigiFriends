@@ -12,6 +12,8 @@
 	--paper-300: #e7dbbe;
 	--paper-edge: #d8c7a0;
 	--paper-line: #cbb98f;
+	/* RGB-Tripel (ohne rgb()) für die Maserung, s. BookPage.svelte; je Buch-Theme überschrieben */
+	--paper-grain-rgb: 120, 96, 60;
 
 	/* Tinte / Text */
 	--ink-900: #2c2620;

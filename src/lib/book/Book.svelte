@@ -233,6 +233,13 @@
 		--cover-title-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 		--ochre: #f2994a;
 		--ochre-deep: #d6336c;
+		/* Warmes, helles Fest-Papier statt gealtertem Sepia – passend zu "bunt und fröhlich" */
+		--paper-100: #fff8f0;
+		--paper-200: #ffeedd;
+		--paper-300: #ffdfc2;
+		--paper-edge: #ffc998;
+		--paper-line: #f5a85f;
+		--paper-grain-rgb: 150, 90, 40;
 	}
 	.stage[data-book-theme='ozean'] {
 		--cover-gradient: linear-gradient(180deg, #1f6f78, #123b42);
@@ -242,6 +249,13 @@
 		--cover-plate-border: rgba(238, 250, 250, 0.32);
 		--ochre: #3fb8c4;
 		--ochre-deep: #1f8a94;
+		/* Frisches, klares Papier statt Sepia – passend zu "modern und klar" */
+		--paper-100: #f3fbfb;
+		--paper-200: #e4f4f4;
+		--paper-300: #cfe9ea;
+		--paper-edge: #a9d8da;
+		--paper-line: #8ec7ca;
+		--paper-grain-rgb: 25, 80, 85;
 	}
 	.stage[data-book-theme='mitternacht'] {
 		--cover-gradient: linear-gradient(180deg, #1b2340, #0a0e1f);
@@ -251,6 +265,13 @@
 		--cover-plate-border: rgba(244, 227, 178, 0.4);
 		--ochre: #d4af37;
 		--ochre-deep: #b8892f;
+		/* Edles Creme-Gold-Papier statt Leder-Sepia – passend zu "edel und ruhig" */
+		--paper-100: #faf4e3;
+		--paper-200: #f2e7c8;
+		--paper-300: #e6d3a0;
+		--paper-edge: #d4b96a;
+		--paper-line: #c2a44e;
+		--paper-grain-rgb: 130, 100, 40;
 	}
 
 	/* ---------------------------------------------------------------- Cover */

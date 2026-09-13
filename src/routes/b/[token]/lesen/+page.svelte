@@ -37,7 +37,7 @@
 {#if book}
 	{#snippet page(i: number)}
 		{#if i === 0}
-			<BookPage side="left" number={1}>
+			<BookPage side="left" number={1} theme={book.theme}>
 				<div class="reading">
 					<h2 class="reading__title">{book.title}</h2>
 					{#if book.subtitle}<p class="reading__sub">{book.subtitle}</p>{/if}
@@ -56,7 +56,7 @@
 				tocIndex * TOC_PER_PAGE,
 				tocIndex * TOC_PER_PAGE + TOC_PER_PAGE
 			)}
-			<BookPage side={i % 2 === 0 ? 'right' : 'left'} number={i + 1}>
+			<BookPage side={i % 2 === 0 ? 'right' : 'left'} number={i + 1} theme={book.theme}>
 				<div class="reading">
 					{#if tocIndex === 0}<h2 class="reading__title">Inhalt</h2>{/if}
 					{#if entries.length === 0}
@@ -85,7 +85,7 @@
 			{@const idx = i - firstEntryPage}
 			{@const e = entries[Math.floor(idx / 2)]}
 			{@const side = idx % 2 === 0 ? 'left' : 'right'}
-			<BookPage {side} number={i + 1}>
+			<BookPage {side} number={i + 1} theme={book.theme}>
 				<div class="entry">
 					{#if side === 'left'}
 						<div class="entry__head">

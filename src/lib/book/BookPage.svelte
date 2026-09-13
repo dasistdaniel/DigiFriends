@@ -15,14 +15,20 @@
 		'M2.01 21L23 12 2.01 3 2 10l15 2-15 2z'
 	];
 
+	/** Regenbogen-Theme: Eckdoodles wechseln die Farbe statt einheitlich ockerfarben zu sein. */
+	const RAINBOW = ['#e63950', '#f2994a', '#f2c94c', '#27ae60', '#2f80ed', '#9b51e0'];
+
 	let {
 		side = 'left',
 		number,
+		theme,
 		ornaments,
 		children
 	}: {
 		side?: 'left' | 'right';
 		number?: number;
+		/** Buch-Theme (s. $lib/bookThemes) – steuert nur die Eckdoodle-Farbe (Regenbogen) */
+		theme?: string;
 		/** dekorative Ebene hinter dem Text (Blätter, Bäume …); ohne Angabe erscheint ein Eckdoodle */
 		ornaments?: Snippet;
 		children: Snippet;
@@ -33,6 +39,11 @@
 		doodlePaths[((doodleSeed % doodlePaths.length) + doodlePaths.length) % doodlePaths.length]
 	);
 	const doodleRotate = $derived(((doodleSeed * 37) % 24) - 12);
+	const doodleColor = $derived(
+		theme === 'regenbogen'
+			? RAINBOW[((doodleSeed % RAINBOW.length) + RAINBOW.length) % RAINBOW.length]
+			: undefined
+	);
 </script>
 
 <div class="page page--{side}" data-side={side}>
@@ -45,6 +56,7 @@
 			viewBox="0 0 24 24"
 			aria-hidden="true"
 			style:transform={`rotate(${doodleRotate}deg)`}
+			style:color={doodleColor}
 		>
 			<path d={doodlePath} />
 		</svg>
@@ -92,9 +104,13 @@
 		opacity: 0.5;
 		mix-blend-mode: multiply;
 		background-image:
-			repeating-linear-gradient(90deg, transparent 0 3px, rgba(120, 96, 60, 0.035) 3px 4px),
-			radial-gradient(circle at 20% 30%, rgba(120, 96, 60, 0.06), transparent 45%),
-			radial-gradient(circle at 82% 74%, rgba(120, 96, 60, 0.05), transparent 40%);
+			repeating-linear-gradient(
+				90deg,
+				transparent 0 3px,
+				rgba(var(--paper-grain-rgb), 0.035) 3px 4px
+			),
+			radial-gradient(circle at 20% 30%, rgba(var(--paper-grain-rgb), 0.06), transparent 45%),
+			radial-gradient(circle at 82% 74%, rgba(var(--paper-grain-rgb), 0.05), transparent 40%);
 	}
 
 	.page__ornaments {
