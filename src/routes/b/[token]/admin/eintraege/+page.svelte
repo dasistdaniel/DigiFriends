@@ -110,7 +110,7 @@
 								<strong>{e.displayName}</strong>
 								<span class="pill pill--{e.state}">{stateLabel[e.state]}</span>
 								{#if e.photoCount}<span class="muted">{e.photoCount} Foto(s)</span>{/if}
-								{#if e.hasDrawing}<span class="muted">Zeichnung</span>{/if}
+								{#if e.drawingCount}<span class="muted">{e.drawingCount} Zeichnung(en)</span>{/if}
 							</div>
 							{#if e.preview}<p class="preview">„{e.preview}"</p>{/if}
 						</div>

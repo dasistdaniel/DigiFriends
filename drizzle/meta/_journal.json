@@ -15,6 +15,13 @@
       "when": 1789226990040,
       "tag": "0001_misty_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789278854114,
+      "tag": "0002_giant_mathemanic",
+      "breakpoints": true
     }
   ]
 }

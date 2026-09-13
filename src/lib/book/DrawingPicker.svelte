@@ -2,18 +2,21 @@
 	import { untrack } from 'svelte';
 
 	type Item = { id: string; thumbUrl: string; url: string };
+	type Tool = 'draw' | 'erase' | 'fill';
 
 	let {
 		token,
-		initial,
+		max = 4,
+		initial = [],
 		// eslint-disable-next-line no-useless-assignment -- $bindable-Default, Svelte-Runes
-		value = $bindable('')
+		value = $bindable([])
 	}: {
 		token: string;
-		/** bereits vorhandene Zeichnung (beim Bearbeiten) */
-		initial?: Item;
-		/** asset-id der Zeichnung ('' = keine) */
-		value?: string;
+		max?: number;
+		/** bereits vorhandene Zeichnungen (beim Bearbeiten) */
+		initial?: Item[];
+		/** asset-ids der Zeichnungen */
+		value?: string[];
 	} = $props();
 
 	const CW = 560;
@@ -29,18 +32,25 @@
 		'#000000'
 	];
 
-	let item = $state<Item | undefined>(untrack(() => initial));
+	let items = $state<Item[]>(untrack(() => [...initial]));
 	let open = $state(false);
+	/** null = neue Zeichnung anlegen; sonst Index in items, der bearbeitet wird */
+	let editingIndex = $state<number | null>(null);
 	let color = $state(SWATCHES[0]);
 	let size = $state(4);
-	let eraser = $state(false);
+	let tool = $state<Tool>('draw');
 	let uploading = $state(false);
 	let errorMsg = $state('');
+	let limitMsg = $state('');
 
 	let canvas: HTMLCanvasElement | undefined = $state();
 	let ctx: CanvasRenderingContext2D | null = null;
 	let history: ImageData[] = [];
 	let isDrawing = false;
+
+	function sync() {
+		value = items.map((i) => i.id);
+	}
 
 	function initCanvas() {
 		if (!canvas) return;
@@ -54,16 +64,29 @@
 	$effect(() => {
 		if (!open || !canvas) return;
 		initCanvas();
-		if (item) {
+		const existing = editingIndex !== null ? items[editingIndex] : undefined;
+		if (existing) {
 			const img = new Image();
 			img.onload = () => ctx?.drawImage(img, 0, 0, CW, CH);
-			img.src = item.url;
+			img.src = existing.url;
 		}
 	});
 
-	function openTool() {
+	function openNew() {
+		if (items.length >= max) {
+			limitMsg = `Höchstens ${max} Zeichnungen.`;
+			return;
+		}
+		limitMsg = '';
 		errorMsg = '';
-		eraser = false;
+		tool = 'draw';
+		editingIndex = null;
+		open = true;
+	}
+	function openEdit(i: number) {
+		errorMsg = '';
+		tool = 'draw';
+		editingIndex = i;
 		open = true;
 	}
 	function close() {
@@ -78,20 +101,89 @@
 		};
 	}
 
-	function pointerDown(e: PointerEvent) {
-		if (!ctx || !canvas) return;
-		canvas.setPointerCapture(e.pointerId);
+	function pushHistory() {
+		if (!ctx) return;
 		history.push(ctx.getImageData(0, 0, CW, CH));
 		if (history.length > 30) history.shift();
-		isDrawing = true;
+	}
+
+	function hexToRgba(hex: string): [number, number, number, number] {
+		const n = parseInt(hex.slice(1), 16);
+		return [(n >> 16) & 255, (n >> 8) & 255, n & 255, 255];
+	}
+
+	function floodFill(startX: number, startY: number, fillHex: string) {
+		if (!ctx) return;
+		const x0 = Math.round(startX);
+		const y0 = Math.round(startY);
+		if (x0 < 0 || y0 < 0 || x0 >= CW || y0 >= CH) return;
+
+		const img = ctx.getImageData(0, 0, CW, CH);
+		const data = img.data;
+		const fill = hexToRgba(fillHex);
+		const startIdx = (y0 * CW + x0) * 4;
+		const target: [number, number, number, number] = [
+			data[startIdx],
+			data[startIdx + 1],
+			data[startIdx + 2],
+			data[startIdx + 3]
+		];
+		if (
+			target[0] === fill[0] &&
+			target[1] === fill[1] &&
+			target[2] === fill[2] &&
+			target[3] === fill[3]
+		) {
+			return;
+		}
+
+		const tolerance = 32;
+		const matches = (i: number) =>
+			Math.abs(data[i] - target[0]) <= tolerance &&
+			Math.abs(data[i + 1] - target[1]) <= tolerance &&
+			Math.abs(data[i + 2] - target[2]) <= tolerance &&
+			Math.abs(data[i + 3] - target[3]) <= tolerance;
+
+		const visited = new Uint8Array(CW * CH);
+		const stack: number[] = [x0, y0];
+		while (stack.length) {
+			const y = stack.pop()!;
+			const x = stack.pop()!;
+			const px = y * CW + x;
+			if (visited[px]) continue;
+			const i = px * 4;
+			if (!matches(i)) continue;
+			visited[px] = 1;
+			data[i] = fill[0];
+			data[i + 1] = fill[1];
+			data[i + 2] = fill[2];
+			data[i + 3] = fill[3];
+			if (x > 0) stack.push(x - 1, y);
+			if (x < CW - 1) stack.push(x + 1, y);
+			if (y > 0) stack.push(x, y - 1);
+			if (y < CH - 1) stack.push(x, y + 1);
+		}
+		ctx.putImageData(img, 0, 0);
+	}
+
+	function pointerDown(e: PointerEvent) {
+		if (!ctx || !canvas) return;
 		const { x, y } = toLocal(e);
+		if (tool === 'fill') {
+			pushHistory();
+			floodFill(x, y, color);
+			return;
+		}
+		canvas.setPointerCapture(e.pointerId);
+		pushHistory();
+		isDrawing = true;
 		ctx.beginPath();
 		ctx.moveTo(x, y);
 	}
 	function pointerMove(e: PointerEvent) {
 		if (!isDrawing || !ctx) return;
 		const { x, y } = toLocal(e);
-		ctx.strokeStyle = eraser ? '#ffffff' : color;
+		ctx.strokeStyle = tool === 'erase' ? '#ffffff' : color;
 		ctx.lineWidth = size;
 		ctx.lineCap = 'round';
 		ctx.lineJoin = 'round';
@@ -108,13 +200,17 @@
 	}
 	function clearAll() {
 		if (!ctx) return;
-		history.push(ctx.getImageData(0, 0, CW, CH));
+		pushHistory();
 		ctx.fillStyle = '#ffffff';
 		ctx.fillRect(0, 0, CW, CH);
 	}
-	function removeDrawing() {
-		item = undefined;
-		value = '';
+	function pickColor(c: string) {
+		color = c;
+		if (tool === 'erase') tool = 'draw';
+	}
+	function remove(i: number) {
+		items = items.filter((_, idx) => idx !== i);
+		sync();
 	}
 
 	async function save() {
@@ -140,9 +236,13 @@
 				errorMsg = body.message ?? 'Upload fehlgeschlagen.';
 				return;
 			}
-			const a = (await res.json()) as { id: string; url: string; thumbUrl: string };
-			item = { id: a.id, thumbUrl: a.thumbUrl, url: a.url };
-			value = a.id;
+			const a = (await res.json()) as Item;
+			if (editingIndex !== null) {
+				items = items.map((it, idx) => (idx === editingIndex ? a : it));
+			} else {
+				items = [...items, a];
+			}
+			sync();
 			open = false;
 		} finally {
 			uploading = false;
@@ -156,27 +256,31 @@
 	}}
 />
 
-<div class="slot">
-	{#if item}
-		<div class="polaroid">
-			<button
-				type="button"
-				class="polaroid__frame"
-				onclick={openTool}
-				aria-label="Zeichnung bearbeiten"
-			>
-				<img src={item.thumbUrl} alt="Zeichnung-Vorschau" />
-			</button>
-			<button
-				type="button"
-				class="polaroid__x"
-				onclick={removeDrawing}
-				aria-label="Zeichnung entfernen">×</button
-			>
-		</div>
-	{:else}
-		<button type="button" class="polaroid polaroid--add" onclick={openTool}>+ Zeichnen</button>
-	{/if}
+<div class="picker">
+	<div class="grid">
+		{#each items as item, i (item.id)}
+			<div class="polaroid">
+				<button
+					type="button"
+					class="polaroid__frame"
+					onclick={() => openEdit(i)}
+					aria-label="Zeichnung bearbeiten"
+				>
+					<img src={item.thumbUrl} alt="Zeichnung-Vorschau" />
+				</button>
+				<button
+					type="button"
+					class="polaroid__x"
+					onclick={() => remove(i)}
+					aria-label="Zeichnung entfernen">×</button
+				>
+			</div>
+		{/each}
+		{#if items.length < max}
+			<button type="button" class="polaroid polaroid--add" onclick={openNew}>+ Zeichnen</button>
+		{/if}
+	</div>
+	{#if limitMsg}<p class="err">{limitMsg}</p>{/if}
 </div>
 
 {#if open}
@@ -188,6 +292,7 @@
 				width={CW}
 				height={CH}
 				class="canvas"
+				class:canvas--fill={tool === 'fill'}
 				onpointerdown={pointerDown}
 				onpointermove={pointerMove}
 				onpointerup={pointerUp}
@@ -200,19 +305,16 @@
 						<button
 							type="button"
 							class="swatch"
-							class:swatch--on={!eraser && color === c}
+							class:swatch--on={tool !== 'erase' && color === c}
 							style:background={c}
-							onclick={() => {
-								color = c;
-								eraser = false;
-							}}
+							onclick={() => pickColor(c)}
 							aria-label={`Farbe ${c}`}
 						></button>
 					{/each}
 					<input
 						type="color"
 						bind:value={color}
-						onclick={() => (eraser = false)}
+						onclick={() => pickColor(color)}
 						class="colorpick"
 						aria-label="Eigene Farbe"
 					/>
@@ -234,9 +336,19 @@
 					<button
 						type="button"
 						class="pill"
-						class:pill--on={eraser}
-						onclick={() => (eraser = !eraser)}>Radierer</button
+						class:pill--on={tool === 'fill'}
+						onclick={() => (tool = tool === 'fill' ? 'draw' : 'fill')}
 					>
+						Füllen
+					</button>
+					<button
+						type="button"
+						class="pill"
+						class:pill--on={tool === 'erase'}
+						onclick={() => (tool = tool === 'erase' ? 'draw' : 'erase')}
+					>
+						Radierer
+					</button>
 					<button type="button" class="pill" onclick={undo}>Rückgängig</button>
 					<button type="button" class="pill" onclick={clearAll}>Alles löschen</button>
 				</div>
@@ -256,8 +368,15 @@
 {/if}
 
 <style>
-	.slot {
-		display: inline-flex;
+	.picker {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+	.grid {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
 	}
 	.polaroid {
 		width: 5rem;
@@ -337,6 +456,9 @@
 		border: 1px solid var(--surface-line);
 		touch-action: none;
 		cursor: crosshair;
+	}
+	.canvas--fill {
+		cursor: pointer;
 	}
 	.toolbar {
 		display: flex;

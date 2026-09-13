@@ -4,7 +4,7 @@ import { db } from '$lib/server/db';
 import { asset, entry, entryAnswer, invite, question } from '$lib/server/db/schema';
 import { newToken, hashToken } from '$lib/server/crypto';
 import { loadBookAccess, requireWrite } from '$lib/server/guard';
-import { MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
+import { MAX_DRAWINGS_PER_ENTRY, MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -84,18 +84,18 @@ export const actions: Actions = {
 
 		// hochgeladene Bilder validieren: gehören zum Buch, noch keinem Eintrag zugeordnet
 		const wantAvatar = String(fd.get('avatarAssetId') ?? '').trim();
-		const wantDrawing = String(fd.get('drawingAssetId') ?? '').trim();
+		const wantDrawings = String(fd.get('drawingAssetIds') ?? '')
+			.split(',')
+			.map((s) => s.trim())
+			.filter(Boolean)
+			.slice(0, MAX_DRAWINGS_PER_ENTRY);
 		const wantPhotos = String(fd.get('photoAssetIds') ?? '')
 			.split(',')
 			.map((s) => s.trim())
 			.filter(Boolean)
 			.slice(0, MAX_PHOTOS_PER_ENTRY);
 
-		const wantedIds = [
-			...(wantAvatar ? [wantAvatar] : []),
-			...(wantDrawing ? [wantDrawing] : []),
-			...wantPhotos
-		];
+		const wantedIds = [...(wantAvatar ? [wantAvatar] : []), ...wantDrawings, ...wantPhotos];
 		const ownAssets = wantedIds.length
 			? await db.query.asset.findMany({
 					where: and(
@@ -109,10 +109,9 @@ export const actions: Actions = {
 			wantAvatar && ownAssets.some((a) => a.id === wantAvatar && a.kind === 'avatar')
 				? wantAvatar
 				: null;
-		const drawingId =
-			wantDrawing && ownAssets.some((a) => a.id === wantDrawing && a.kind === 'drawing')
-				? wantDrawing
-				: null;
+		const drawingIds = wantDrawings.filter((id) =>
+			ownAssets.some((a) => a.id === id && a.kind === 'drawing')
+		);
 		const photoIds = wantPhotos.filter((id) =>
 			ownAssets.some((a) => a.id === id && a.kind === 'photo')
 		);
@@ -153,8 +152,7 @@ export const actions: Actions = {
 					publishedAt: published ? new Date() : null,
 					editTokenHash: hashToken(editToken),
 					editScope: 'link',
-					avatarAssetId: avatarId,
-					drawingAssetId: drawingId
+					avatarAssetId: avatarId
 				})
 				.returning({ id: entry.id });
 
@@ -173,8 +171,14 @@ export const actions: Actions = {
 			if (avatarId) {
 				await tx.update(asset).set({ entryId: created.id }).where(eq(asset.id, avatarId));
 			}
-			if (drawingId) {
-				await tx.update(asset).set({ entryId: created.id }).where(eq(asset.id, drawingId));
+			for (let i = 0; i < drawingIds.length; i++) {
+				await tx
+					.update(asset)
+					.set({
+						entryId: created.id,
+						position: { order: i, rotate: Math.round((Math.random() * 8 - 4) * 10) / 10 }
+					})
+					.where(eq(asset.id, drawingIds[i]));
 			}
 			for (let i = 0; i < photoIds.length; i++) {
 				await tx

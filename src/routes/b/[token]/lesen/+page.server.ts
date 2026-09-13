@@ -42,21 +42,22 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		})),
 		entries: entries.map((e) => {
 			const avatar = e.avatarAssetId ? e.assets.find((a) => a.id === e.avatarAssetId) : undefined;
-			const drawing = e.drawingAssetId
-				? e.assets.find((a) => a.id === e.drawingAssetId)
-				: undefined;
-			const photos = e.assets
-				.filter((a) => a.kind === 'photo')
-				.sort((a, b) => ((a.position as Pos)?.order ?? 0) - ((b.position as Pos)?.order ?? 0));
+			const byOrder = (a: (typeof e.assets)[number], b: (typeof e.assets)[number]) =>
+				((a.position as Pos)?.order ?? 0) - ((b.position as Pos)?.order ?? 0);
+			const drawings = e.assets.filter((a) => a.kind === 'drawing').sort(byOrder);
+			const photos = e.assets.filter((a) => a.kind === 'photo').sort(byOrder);
 			return {
 				id: e.id,
 				displayName: e.displayName || 'Anonym',
 				closingLine: e.closingLine,
 				answers: Object.fromEntries(e.answers.map((a) => [a.questionId, a.valueText])),
 				avatar: avatar ? { thumb: `${assetBase}/${avatar.id}/thumb` } : null,
-				drawing: drawing
-					? { thumb: `${assetBase}/${drawing.id}/thumb`, full: `${assetBase}/${drawing.id}` }
-					: null,
+				drawings: drawings.map((d) => ({
+					id: d.id,
+					thumb: `${assetBase}/${d.id}/thumb`,
+					full: `${assetBase}/${d.id}`,
+					rotate: (d.position as Pos)?.rotate ?? 0
+				})),
 				photos: photos.map((p) => ({
 					id: p.id,
 					thumb: `${assetBase}/${p.id}/thumb`,

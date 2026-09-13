@@ -120,9 +120,8 @@ export const entry = pgTable(
 		state: entryState('state').notNull().default('draft'),
 		editTokenHash: text('edit_token_hash').notNull(),
 		editScope: editScope('edit_scope').notNull().default('link'),
-		/** verweisen auf asset.id; keine DB-FK, um Zyklus mit asset.entry_id zu vermeiden */
+		/** verweist auf asset.id; keine DB-FK, um Zyklus mit asset.entry_id zu vermeiden */
 		avatarAssetId: uuid('avatar_asset_id'),
-		drawingAssetId: uuid('drawing_asset_id'),
 		closingLine: text('closing_line'),
 		createdAt,
 		updatedAt,

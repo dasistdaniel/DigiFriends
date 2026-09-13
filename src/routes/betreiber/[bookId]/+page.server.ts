@@ -46,12 +46,10 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		},
 		entries: entries.map((e) => {
 			const avatar = e.avatarAssetId ? e.assets.find((a) => a.id === e.avatarAssetId) : undefined;
-			const drawing = e.drawingAssetId
-				? e.assets.find((a) => a.id === e.drawingAssetId)
-				: undefined;
-			const photos = e.assets
-				.filter((a) => a.kind === 'photo')
-				.sort((a, c) => ((a.position as Pos)?.order ?? 0) - ((c.position as Pos)?.order ?? 0));
+			const byOrder = (a: (typeof e.assets)[number], c: (typeof e.assets)[number]) =>
+				((a.position as Pos)?.order ?? 0) - ((c.position as Pos)?.order ?? 0);
+			const drawings = e.assets.filter((a) => a.kind === 'drawing').sort(byOrder);
+			const photos = e.assets.filter((a) => a.kind === 'photo').sort(byOrder);
 			return {
 				id: e.id,
 				displayName: e.displayName || 'Anonym',
@@ -65,7 +63,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 					}))
 					.filter((a) => a.value !== ''),
 				avatar: avatar ? `${assetBase}/${avatar.id}/thumb` : null,
-				drawing: drawing ? `${assetBase}/${drawing.id}/thumb` : null,
+				drawings: drawings.map((d) => ({ id: d.id, thumb: `${assetBase}/${d.id}/thumb` })),
 				photos: photos.map((p) => ({ id: p.id, thumb: `${assetBase}/${p.id}/thumb` }))
 			};
 		})

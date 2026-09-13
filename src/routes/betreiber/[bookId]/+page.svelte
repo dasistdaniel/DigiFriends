@@ -96,9 +96,11 @@
 
 					{#if e.closingLine}<p class="closing">„{e.closingLine}"</p>{/if}
 
-					{#if e.drawing || e.photos.length}
+					{#if e.drawings.length || e.photos.length}
 						<div class="thumbs">
-							{#if e.drawing}<img src={e.drawing} alt="Zeichnung" />{/if}
+							{#each e.drawings as d (d.id)}
+								<img src={d.thumb} alt="Zeichnung" />
+							{/each}
 							{#each e.photos as p (p.id)}
 								<img src={p.thumb} alt="" />
 							{/each}

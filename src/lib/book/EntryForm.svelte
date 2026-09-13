@@ -4,7 +4,7 @@
 	import { resolve } from '$app/paths';
 	import BookPage from '$lib/book/BookPage.svelte';
 	import ImagePicker from '$lib/book/ImagePicker.svelte';
-	import DrawingSlot from '$lib/book/DrawingSlot.svelte';
+	import DrawingPicker from '$lib/book/DrawingPicker.svelte';
 
 	type Q = {
 		id: string;
@@ -38,7 +38,7 @@
 			answers?: Record<string, string>;
 			avatar?: Pic;
 			photos?: Pic[];
-			drawing?: Drawing;
+			drawings?: Drawing[];
 		};
 		lockName?: boolean;
 		moderationHint?: boolean;
@@ -55,7 +55,7 @@
 	let closingLine = $state(untrack(() => initial?.closingLine ?? ''));
 	let avatarAssetId = $state(untrack(() => initial?.avatar?.id ?? ''));
 	let photoAssetIds = $state<string[]>(untrack(() => (initial?.photos ?? []).map((p) => p.id)));
-	let drawingAssetId = $state(untrack(() => initial?.drawing?.id ?? ''));
+	let drawingAssetIds = $state<string[]>(untrack(() => (initial?.drawings ?? []).map((d) => d.id)));
 	let answers = $state<Record<string, string>>(
 		untrack(() => Object.fromEntries(questions.map((q) => [q.id, initial?.answers?.[q.id] ?? ''])))
 	);
@@ -78,7 +78,7 @@
 
 	<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
 	<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
-	<input type="hidden" name="drawingAssetId" value={drawingAssetId} />
+	<input type="hidden" name="drawingAssetIds" value={drawingAssetIds.join(',')} />
 
 	<div class="spread">
 		<BookPage side="left">
@@ -105,8 +105,8 @@
 					/>
 				</div>
 				<div class="q">
-					<span class="label">Zeichnung <span class="opt">optional</span></span>
-					<DrawingSlot {token} initial={initial?.drawing} bind:value={drawingAssetId} />
+					<span class="label">Zeichnungen <span class="opt">optional</span></span>
+					<DrawingPicker {token} initial={initial?.drawings ?? []} bind:value={drawingAssetIds} />
 				</div>
 				{#each leftQuestions as q (q.id)}
 					<label class="q">

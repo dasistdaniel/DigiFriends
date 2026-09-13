@@ -105,19 +105,18 @@
 							{/each}
 						</dl>
 					{:else}
-						{#if e.drawing || e.photos.length}
+						{#if e.drawings.length || e.photos.length}
 							<div class="polaroids">
-								{#if e.drawing}
-									{@const drawing = e.drawing}
+								{#each e.drawings as drawing (drawing.id)}
 									<button
 										type="button"
 										class="polaroid"
-										style="--rot: -3deg"
+										style="--rot: {drawing.rotate}deg"
 										onclick={() => (lightbox = drawing.full)}
 									>
 										<img src={drawing.thumb} alt={`Zeichnung von ${e.displayName}`} />
 									</button>
-								{/if}
+								{/each}
 								{#each e.photos as photo (photo.id)}
 									<button
 										type="button"

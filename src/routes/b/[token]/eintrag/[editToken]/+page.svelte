@@ -38,7 +38,7 @@
 				closingLine: e.closingLine,
 				answers: e.answers,
 				avatar: e.avatar,
-				drawing: e.drawing,
+				drawings: e.drawings,
 				photos: e.photos
 			}}
 			{message}

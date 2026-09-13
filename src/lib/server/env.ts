@@ -18,6 +18,7 @@ export const MAX_UPLOAD_BYTES = Number(env.MAX_UPLOAD_BYTES) || 8 * 1024 * 1024;
 
 /** Obergrenzen je Eintrag. */
 export const MAX_PHOTOS_PER_ENTRY = Number(env.MAX_PHOTOS_PER_ENTRY) || 6;
+export const MAX_DRAWINGS_PER_ENTRY = Number(env.MAX_DRAWINGS_PER_ENTRY) || 4;
 
 /** Passwort für den Betreiber-Bereich (/betreiber). Ohne gesetztes Passwort deaktiviert. */
 export const OPERATOR_PASSWORD = env.OPERATOR_PASSWORD?.trim() || null;
