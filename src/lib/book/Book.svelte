@@ -110,72 +110,39 @@
 
 {#if !open}
 	<div class="stage stage--closed" data-book-theme={theme}>
-		<div class="closed-group">
-			<p class="desk-note hand">Danke, dass du DigiFriends nutzt!</p>
-			{#if closedFace === 'back'}
-				<button
-					type="button"
-					class="cover cover--back"
-					onclick={() => (open = true)}
-					aria-label="Buch wieder aufschlagen"
-				>
-					<span class="cover__edge" aria-hidden="true"></span>
-					<span class="cover__spine" aria-hidden="true"></span>
-					<span class="cover__blurb">
-						<span class="cover__ornament" aria-hidden="true">✦</span>
-						<span class="cover__blurb-text">Gemeinsame Erinnerungen, gesammelt in einem Buch.</span>
-					</span>
-					<span class="cover__backplate">
-						<svg class="cover__barcode" viewBox="0 0 70 40" aria-hidden="true">
-							<rect width="70" height="40" rx="2" fill="#f4efe2" />
-							<rect x="4" y="4" width="1.5" height="28" fill="#181818" />
-							<rect x="7" y="4" width="1" height="28" fill="#181818" />
-							<rect x="9.5" y="4" width="2.5" height="28" fill="#181818" />
-							<rect x="14" y="4" width="1" height="28" fill="#181818" />
-							<rect x="17" y="4" width="1" height="28" fill="#181818" />
-							<rect x="20" y="4" width="2" height="28" fill="#181818" />
-							<rect x="24" y="4" width="1" height="28" fill="#181818" />
-							<rect x="27" y="4" width="1.5" height="28" fill="#181818" />
-							<rect x="31" y="4" width="1" height="28" fill="#181818" />
-							<rect x="34" y="4" width="2.5" height="28" fill="#181818" />
-							<rect x="39" y="4" width="1" height="28" fill="#181818" />
-							<rect x="42" y="4" width="1" height="28" fill="#181818" />
-							<rect x="45" y="4" width="2" height="28" fill="#181818" />
-							<rect x="49" y="4" width="1" height="28" fill="#181818" />
-							<rect x="52" y="4" width="1.5" height="28" fill="#181818" />
-							<rect x="56" y="4" width="1" height="28" fill="#181818" />
-							<rect x="59" y="4" width="2" height="28" fill="#181818" />
-							<rect x="63" y="4" width="1" height="28" fill="#181818" />
-							<text
-								x="35"
-								y="37"
-								text-anchor="middle"
-								font-size="6"
-								font-family="monospace"
-								fill="#181818">DF·26</text
-							>
-						</svg>
-					</span>
-					<span class="cover__hint label">Weiterlesen</span>
-				</button>
-			{:else}
-				<button
-					type="button"
-					class="cover"
-					onclick={() => (open = true)}
-					aria-label="Buch aufschlagen"
-				>
-					<span class="cover__edge" aria-hidden="true"></span>
-					<span class="cover__spine" aria-hidden="true"></span>
-					<span class="cover__plate">
-						<span class="cover__ornament" aria-hidden="true">✦</span>
-						<span class="cover__title">{title}</span>
-						{#if subtitle}<span class="cover__subtitle">{subtitle}</span>{/if}
-					</span>
-					<span class="cover__hint label">Aufschlagen</span>
-				</button>
-			{/if}
-		</div>
+		{#if closedFace === 'back'}
+			<button
+				type="button"
+				class="cover cover--back"
+				onclick={() => (open = true)}
+				aria-label="Buch wieder aufschlagen"
+			>
+				<span class="cover__edge" aria-hidden="true"></span>
+				<span class="cover__spine" aria-hidden="true"></span>
+				<span class="cover__blurb">
+					<span class="cover__ornament" aria-hidden="true">✦</span>
+					<span class="cover__blurb-text">Gemeinsame Erinnerungen, gesammelt in einem Buch.</span>
+				</span>
+				<p class="cover__thanks hand">Danke, dass du DigiFriends nutzt!</p>
+				<span class="cover__hint label">Weiterlesen</span>
+			</button>
+		{:else}
+			<button
+				type="button"
+				class="cover"
+				onclick={() => (open = true)}
+				aria-label="Buch aufschlagen"
+			>
+				<span class="cover__edge" aria-hidden="true"></span>
+				<span class="cover__spine" aria-hidden="true"></span>
+				<span class="cover__plate">
+					<span class="cover__ornament" aria-hidden="true">✦</span>
+					<span class="cover__title">{title}</span>
+					{#if subtitle}<span class="cover__subtitle">{subtitle}</span>{/if}
+				</span>
+				<span class="cover__hint label">Aufschlagen</span>
+			</button>
+		{/if}
 	</div>
 {:else}
 	<div class="stage" data-book-theme={theme}>
@@ -445,39 +412,21 @@
 		text-shadow: var(--cover-title-shadow);
 		opacity: 0.85;
 	}
-	.cover__backplate {
+	/* Danke-Sticker: gleiche Machart wie der Titel-Sticker auf der Vorderseite. */
+	.cover__thanks {
 		position: absolute;
-		right: 10%;
-		bottom: 10%;
-	}
-	.cover__barcode {
-		width: 4.4rem;
-		height: auto;
-		border-radius: 1px;
-	}
-
-	/* Notizzettel: liegt auf dem Schreibtisch, das Buch liegt teilweise darauf. */
-	.closed-group {
-		position: relative;
-		display: inline-flex;
-	}
-	.desk-note {
-		position: absolute;
-		left: 50%;
-		bottom: -0.9rem;
-		z-index: -1;
+		inset: auto 14% 20%;
 		margin: 0;
-		width: max-content;
-		max-width: 14rem;
+		background: #fdfcf8;
+		border-radius: 6px;
+		padding: 0.6rem 1.1rem;
+		box-shadow:
+			0 10px 20px -10px rgba(0, 0, 0, 0.4),
+			0 2px 4px rgba(0, 0, 0, 0.15);
+		transform: rotate(1.6deg);
+		color: var(--ink-900);
 		text-align: center;
 		font-size: var(--step-0);
-		color: var(--ink-700);
-		background: var(--paper-100);
-		border: 1px solid var(--paper-edge);
-		border-radius: 3px;
-		padding: 0.6rem 1rem;
-		box-shadow: 0 8px 16px -8px var(--shadow-page);
-		transform: translateX(-40%) rotate(-5deg);
 	}
 
 	/* ----------------------------------------------------------------- Book */
