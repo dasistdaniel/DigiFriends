@@ -42,8 +42,8 @@
 	);
 	const atStart = $derived(viewStart <= 0);
 	const atEnd = $derived(viewStart + perView >= pageCount);
-	/** Zeigt beim Schließen die Rückseite, wenn man wirklich bis zum Ende geblättert hat. */
-	const closedFace = $derived(atEnd && !atStart ? 'back' : 'front');
+	/** Welche Seite im geschlossenen Zustand gezeigt wird – gesetzt beim Schließen bzw. per Klick auf der Rückseite. */
+	let closedFace = $state<'front' | 'back'>('front');
 	const totalSpreads = $derived(Math.ceil(pageCount / perView));
 	const currentSpread = $derived(Math.floor(viewStart / perView) + 1);
 	const dur = $derived(reduced ? 0 : 340);
@@ -70,15 +70,21 @@
 		leaf = next;
 		onnavigate?.(leaf);
 	}
-	/** Am Buchende schließt der Weiter-Pfeil das Buch, statt untätig zu bleiben. */
+	/** Am Buchende schließt der Weiter-Pfeil das Buch (zeigt die Rückseite), statt untätig zu bleiben. */
 	function next() {
 		if (!atEnd) goto(viewStart + perView);
-		else open = false;
+		else {
+			closedFace = atStart ? 'front' : 'back';
+			open = false;
+		}
 	}
-	/** Am Buchanfang schließt der Zurück-Pfeil das Buch, statt untätig zu bleiben. */
+	/** Am Buchanfang schließt der Zurück-Pfeil das Buch (zeigt die Vorderseite), statt untätig zu bleiben. */
 	function prev() {
 		if (!atStart) goto(viewStart - perView);
-		else open = false;
+		else {
+			closedFace = 'front';
+			open = false;
+		}
 	}
 
 	function onkeydown(e: KeyboardEvent) {
@@ -123,11 +129,8 @@
 			<button
 				type="button"
 				class="cover cover--back"
-				onclick={() => {
-					goto(0);
-					open = true;
-				}}
-				aria-label="Buch von vorne aufschlagen"
+				onclick={() => (closedFace = 'front')}
+				aria-label="Zur Vorderseite wechseln"
 			>
 				<span class="cover__edge" aria-hidden="true"></span>
 				<span class="cover__spine" aria-hidden="true"></span>
@@ -136,7 +139,7 @@
 					<span class="cover__blurb-text">Gemeinsame Erinnerungen, gesammelt in einem Buch.</span>
 				</span>
 				<p class="cover__thanks hand">Danke, dass du DigiFriends nutzt!</p>
-				<span class="cover__hint label">Zum Anfang</span>
+				<span class="cover__hint label">Zur Vorderseite</span>
 			</button>
 		{:else}
 			<button
@@ -211,7 +214,14 @@
 			<span class="toolbar__progress label" aria-live="polite">
 				Seite {currentSpread} / {totalSpreads}
 			</span>
-			<button type="button" class="toolbar__btn" onclick={() => (open = false)}>
+			<button
+				type="button"
+				class="toolbar__btn"
+				onclick={() => {
+					closedFace = atEnd && !atStart ? 'back' : 'front';
+					open = false;
+				}}
+			>
 				Buch schließen
 			</button>
 		</div>
