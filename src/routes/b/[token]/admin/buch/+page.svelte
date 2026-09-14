@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
+	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+
+	const printHref = $derived(resolve('/b/[token]/lesen/drucken', { token: page.params.token! }));
+	const exportZipHref = $derived(
+		resolve('/b/[token]/admin/export.zip', { token: page.params.token! })
+	);
 
 	const s = untrack(() => (data.locked ? null : data.settings));
 
@@ -126,6 +133,17 @@
 						<button class="btn">Archivieren</button>
 					</form>
 				{/if}
+			</div>
+		</section>
+
+		<hr />
+
+		<section>
+			<h2>Export</h2>
+			<p class="hint">Eine Kopie des Buchs zum Aufbewahren – unabhängig von diesem Server.</p>
+			<div class="row">
+				<a class="btn" href={printHref} target="_blank" rel="noopener">Als PDF exportieren</a>
+				<a class="btn" href={exportZipHref}>Rohdaten als ZIP herunterladen</a>
 			</div>
 		</section>
 
@@ -292,6 +310,7 @@
 	}
 
 	.btn {
+		display: inline-block;
 		font-family: var(--font-label);
 		font-size: var(--step--1);
 		letter-spacing: 0.03em;
@@ -302,6 +321,7 @@
 		padding: 0.5rem 1.1rem;
 		cursor: pointer;
 		align-self: flex-start;
+		text-decoration: none;
 	}
 	.btn:disabled {
 		opacity: 0.5;

@@ -1,9 +1,13 @@
 <script lang="ts">
+	import { page as appPage } from '$app/state';
+	import { resolve } from '$app/paths';
 	import Book from '$lib/book/Book.svelte';
 	import BookPage from '$lib/book/BookPage.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	const printHref = $derived(resolve('/b/[token]/lesen/drucken', { token: appPage.params.token! }));
 
 	// Wenn gesperrt, übernimmt das Layout die Passwort-Abfrage.
 	const book = $derived(data.locked ? null : data.book);
@@ -180,6 +184,8 @@
 		{/if}
 	{/snippet}
 
+	<a class="export-link" href={printHref}>Als PDF exportieren</a>
+
 	<main>
 		<Book
 			bind:this={bookRef}
@@ -204,6 +210,22 @@
 	main {
 		min-height: calc(100vh - var(--footer-h));
 		display: flex;
+	}
+
+	.export-link {
+		position: fixed;
+		top: 0.8rem;
+		right: 0.9rem;
+		z-index: 20;
+		font-family: var(--font-label);
+		font-size: var(--step--1);
+		letter-spacing: 0.04em;
+		background: var(--surface);
+		border: 1px solid var(--surface-line);
+		border-radius: 999px;
+		padding: 0.4rem 0.9rem;
+		color: var(--ink-700);
+		box-shadow: 0 6px 14px -8px var(--shadow-page);
 	}
 
 	.reading {
