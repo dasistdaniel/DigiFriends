@@ -7,7 +7,9 @@
 
 	let { data }: PageProps = $props();
 
-	const printHref = $derived(resolve('/b/[token]/lesen/drucken', { token: appPage.params.token! }));
+	const accessibleHref = $derived(
+		resolve('/b/[token]/lesen/drucken', { token: appPage.params.token! })
+	);
 
 	// Wenn gesperrt, übernimmt das Layout die Passwort-Abfrage.
 	const book = $derived(data.locked ? null : data.book);
@@ -184,7 +186,7 @@
 		{/if}
 	{/snippet}
 
-	<a class="export-link" href={printHref}>Als PDF exportieren</a>
+	<a class="export-link" href={accessibleHref}>Barrierefreie Ansicht</a>
 
 	<main>
 		<Book
