@@ -10,6 +10,7 @@ services:
       SIGNUP_MODE: ${SIGNUP_MODE:-open}
       SECRET_PEPPER: ${SECRET_PEPPER}
       OPERATOR_PASSWORD: ${OPERATOR_PASSWORD:-}
+      INACTIVE_AFTER_DAYS: ${INACTIVE_AFTER_DAYS:-365}
       UPLOAD_DIR: /data/uploads
       MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-8388608}
       MAX_PHOTOS_PER_ENTRY: ${MAX_PHOTOS_PER_ENTRY:-6}
@@ -42,6 +43,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+  # Taegliche Sicherung von Datenbank + Uploads, nach BACKUP_KEEP_DAYS
+  # automatisch aufgeraeumt. Landet in ./backups (Bind-Mount statt Volume,
+  # damit man die Dateien direkt sieht und z. B. per rsync extern abholen
+  # kann). Kein eigenes Image noetig: postgres:16-alpine bringt pg_dump und
+  # tar schon mit (gleiches Image wie der db-Service, kein Extra-Download).
+  backup:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: digifriends
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: digifriends
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./backups:/backups
+      - uploads:/data/uploads:ro
+      - ./scripts/backup.sh:/backup.sh:ro
+    entrypoint: ['/bin/sh', '/backup.sh']
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   db-data:

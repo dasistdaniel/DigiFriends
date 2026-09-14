@@ -59,10 +59,36 @@ auch wenn der Proxy keine `X-Forwarded-*`-Header setzt.
 
 ## Backups
 
-- **Datenbank:** `docker compose exec db pg_dump -U digifriends digifriends | gzip > backup-$(date +%F).sql.gz`
-- **Uploads:** Volume `uploads` sichern, z. B. `docker run --rm -v digifriends_uploads:/data -v $(pwd):/backup alpine tar czf /backup/uploads-$(date +%F).tar.gz -C /data .`
+Ein eigener Container (`backup` in `docker-compose.yml`, `scripts/backup.sh`)
+sichert automatisch einmal täglich Datenbank (`pg_dump | gzip`) und Uploads
+(`tar czf`) nach `./backups` auf dem Server – kein zusätzlicher Cron nötig,
+läuft mit dem Stack. Alte Sicherungen werden nach `BACKUP_KEEP_DAYS` (Standard
+14 Tage) automatisch gelöscht.
 
-Beides regelmäßig per Cron außerhalb des Servers ablegen.
+**Wichtig:** `./backups` liegt auf derselben Platte wie der Rest des Servers.
+Das schützt vor Fehlbedienung (versehentlich gelöschtes Buch, kaputte
+Migration), **nicht** vor einem Festplatten-/Server-Totalausfall. Regelmäßig
+extern sichern, z. B. per Cron auf einem anderen Rechner:
+
+```sh
+rsync -az user@server:/pfad/zu/DigiFriends/backups/ ./digifriends-backups/
+```
+
+**Wiederherstellen:**
+
+```sh
+# Datenbank (App-Container vorher stoppen, sonst schreibt er waehrend des Restores mit):
+docker compose stop app
+gunzip -c backups/db-20260101-030000.sql.gz | docker compose exec -T db psql -U digifriends digifriends
+docker compose start app
+
+# Uploads (in das laufende Volume entpacken):
+docker run --rm -v digifriends_uploads:/data -v $(pwd)/backups:/backups alpine \
+  tar xzf /backups/uploads-20260101-030000.tar.gz -C /data
+```
+
+Testet die Wiederherstellung ab und zu auf einer Kopie – eine Sicherung, die
+nie zurückgespielt wurde, ist nur eine Vermutung.
 
 ## Wichtige Umgebungsvariablen
 

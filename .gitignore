@@ -17,6 +17,9 @@ dist
 *.sqlite
 *.db
 
+# Automated backups (docker-compose "backup" service)
+/backups
+
 # OS
 .DS_Store
 Thumbs.db
