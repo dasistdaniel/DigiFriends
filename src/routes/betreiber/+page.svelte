@@ -10,10 +10,11 @@
 
 	let confirmDelete = $state<string | null>(null);
 	let query = $state('');
+	let onlyInactive = $state(false);
 	const filtered = $derived(
-		query.trim()
-			? books.filter((b) => b.title.toLowerCase().includes(query.trim().toLowerCase()))
-			: books
+		books
+			.filter((b) => !query.trim() || b.title.toLowerCase().includes(query.trim().toLowerCase()))
+			.filter((b) => !onlyInactive || b.inactive)
 	);
 
 	const statusLabel: Record<string, string> = {
@@ -28,6 +29,18 @@
 			month: '2-digit',
 			year: 'numeric'
 		});
+	}
+
+	function timeAgo(iso: string): string {
+		const days = Math.floor((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000));
+		if (days < 1) return 'heute';
+		if (days < 30) return `vor ${days} Tag${days === 1 ? '' : 'en'}`;
+		if (days < 365) {
+			const months = Math.round(days / 30);
+			return `vor ${months} Monat${months === 1 ? '' : 'en'}`;
+		}
+		const years = Math.round(days / 365);
+		return `vor ${years} Jahr${years === 1 ? '' : 'en'}`;
 	}
 </script>
 
@@ -64,7 +77,13 @@
 {:else}
 	<div class="head">
 		<h1>Bücher <span class="count">{books.length}</span></h1>
-		<input class="search" type="search" placeholder="Titel suchen…" bind:value={query} />
+		<div class="head__controls">
+			<label class="check">
+				<input type="checkbox" bind:checked={onlyInactive} />
+				Nur inaktive
+			</label>
+			<input class="search" type="search" placeholder="Titel suchen…" bind:value={query} />
+		</div>
 	</div>
 
 	{#if filtered.length === 0}
@@ -77,9 +96,12 @@
 						<strong>{b.title}</strong>
 						<span class="meta">
 							angelegt {formatDate(b.createdAt)} · {statusLabel[b.status] ?? b.status} · {b.publishedCount}/{b.entryCount}
-							Einträge veröffentlicht
+							Einträge veröffentlicht · zuletzt aktiv {timeAgo(b.lastActivityAt)}
 						</span>
-						{#if b.suspended}<span class="badge">Gesperrt</span>{/if}
+						<div class="badges">
+							{#if b.suspended}<span class="badge">Gesperrt</span>{/if}
+							{#if b.inactive}<span class="badge badge--inactive">Inaktiv</span>{/if}
+						</div>
 					</div>
 					<div class="row__actions">
 						<a class="btn" href={resolve('/betreiber/[bookId]', { bookId: b.id })}>Ansehen</a>
@@ -202,6 +224,20 @@
 		font-size: var(--step-0);
 		color: var(--ink-300);
 	}
+	.head__controls {
+		display: flex;
+		align-items: center;
+		gap: 0.9rem;
+		flex-wrap: wrap;
+	}
+	.check {
+		display: flex;
+		align-items: center;
+		gap: 0.35rem;
+		font-size: var(--step--1);
+		color: var(--ink-500);
+		white-space: nowrap;
+	}
 	.search {
 		border: 1px solid var(--surface-line);
 		background: var(--paper-100);
@@ -243,12 +279,19 @@
 		font-size: var(--step--1);
 		color: var(--ink-500);
 	}
+	.badges {
+		display: flex;
+		gap: 0.5rem;
+	}
 	.badge {
 		align-self: flex-start;
 		font-family: var(--font-label);
 		font-size: var(--step--1);
 		letter-spacing: 0.04em;
 		color: var(--danger);
+	}
+	.badge--inactive {
+		color: var(--ink-300);
 	}
 	.row__actions {
 		display: flex;

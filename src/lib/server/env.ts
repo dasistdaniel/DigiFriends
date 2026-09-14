@@ -23,6 +23,12 @@ export const MAX_DRAWINGS_PER_ENTRY = Number(env.MAX_DRAWINGS_PER_ENTRY) || 4;
 /** Passwort für den Betreiber-Bereich (/betreiber). Ohne gesetztes Passwort deaktiviert. */
 export const OPERATOR_PASSWORD = env.OPERATOR_PASSWORD?.trim() || null;
 
+/**
+ * Ab wann ein Buch im Betreiber-Bereich als inaktiv markiert wird (reiner
+ * Hinweis, keine automatische Löschung – die entscheidet der Betreiber selbst).
+ */
+export const INACTIVE_AFTER_DAYS = Number(env.INACTIVE_AFTER_DAYS) || 365;
+
 /** Mailversand ist nur aktiv, wenn eine SMTP-URL gesetzt ist. */
 export const SMTP_URL = env.SMTP_URL?.trim() || null;
 export const MAIL_FROM = env.MAIL_FROM?.trim() || 'Freundebuch <noreply@example.com>';

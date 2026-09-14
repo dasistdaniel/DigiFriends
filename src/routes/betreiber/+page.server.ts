@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { desc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { book } from '$lib/server/db/schema';
-import { UPLOAD_DIR } from '$lib/server/env';
+import { computeBookActivity } from '$lib/server/bookActivity';
+import { INACTIVE_AFTER_DAYS, UPLOAD_DIR } from '$lib/server/env';
 import {
 	clearOperatorSession,
 	isOperatorSession,
@@ -20,20 +21,30 @@ export const load: PageServerLoad = async ({ cookies }) => {
 	const books = await db.query.book.findMany({
 		orderBy: desc(book.createdAt),
 		with: {
-			entries: { columns: { id: true, state: true } }
+			entries: { columns: { id: true, state: true, createdAt: true, updatedAt: true } }
 		}
 	});
 
 	return {
-		books: books.map((b) => ({
-			id: b.id,
-			title: b.title,
-			createdAt: b.createdAt.toISOString(),
-			status: b.status,
-			suspended: b.suspendedAt !== null,
-			entryCount: b.entries.length,
-			publishedCount: b.entries.filter((e) => e.state === 'published').length
-		}))
+		books: books.map((b) => {
+			const { lastActivityAt, inactive } = computeBookActivity(
+				b.updatedAt,
+				b.entries.map((e) => e.updatedAt),
+				INACTIVE_AFTER_DAYS
+			);
+
+			return {
+				id: b.id,
+				title: b.title,
+				createdAt: b.createdAt.toISOString(),
+				status: b.status,
+				suspended: b.suspendedAt !== null,
+				entryCount: b.entries.length,
+				publishedCount: b.entries.filter((e) => e.state === 'published').length,
+				lastActivityAt: lastActivityAt.toISOString(),
+				inactive
+			};
+		})
 	};
 };
 
