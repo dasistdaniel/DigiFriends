@@ -32,16 +32,24 @@
 		'#000000'
 	];
 
-	let items = $state<Item[]>(untrack(() => [...initial]));
+	/** Feste Anzahl Plaetze; ein entferntes Bild hinterlaesst eine Luecke an
+	 * derselben Stelle statt dass die uebrigen nachruecken, damit die UI beim
+	 * Befuellen nicht "springt" - egal, mit welchem Platz man anfaengt. */
+	let slots = $state<(Item | null)[]>(
+		untrack(() => {
+			const arr: (Item | null)[] = Array(max).fill(null);
+			initial.slice(0, max).forEach((item, i) => (arr[i] = item));
+			return arr;
+		})
+	);
 	let open = $state(false);
-	/** null = neue Zeichnung anlegen; sonst Index in items, der bearbeitet wird */
+	/** welcher Platz gerade im Canvas offen ist */
 	let editingIndex = $state<number | null>(null);
 	let color = $state(SWATCHES[0]);
 	let size = $state(4);
 	let tool = $state<Tool>('draw');
 	let uploading = $state(false);
 	let errorMsg = $state('');
-	let limitMsg = $state('');
 
 	let canvas: HTMLCanvasElement | undefined = $state();
 	let ctx: CanvasRenderingContext2D | null = null;
@@ -49,7 +57,7 @@
 	let isDrawing = false;
 
 	function sync() {
-		value = items.map((i) => i.id);
+		value = slots.filter((s): s is Item => s !== null).map((s) => s.id);
 	}
 
 	function initCanvas() {
@@ -64,7 +72,7 @@
 	$effect(() => {
 		if (!open || !canvas) return;
 		initCanvas();
-		const existing = editingIndex !== null ? items[editingIndex] : undefined;
+		const existing = editingIndex !== null ? slots[editingIndex] : undefined;
 		if (existing) {
 			const img = new Image();
 			img.onload = () => ctx?.drawImage(img, 0, 0, CW, CH);
@@ -72,18 +80,7 @@
 		}
 	});
 
-	function openNew() {
-		if (items.length >= max) {
-			limitMsg = `Höchstens ${max} Zeichnungen.`;
-			return;
-		}
-		limitMsg = '';
-		errorMsg = '';
-		tool = 'draw';
-		editingIndex = null;
-		open = true;
-	}
-	function openEdit(i: number) {
+	function openSlot(i: number) {
 		errorMsg = '';
 		tool = 'draw';
 		editingIndex = i;
@@ -209,7 +206,7 @@
 		if (tool === 'erase') tool = 'draw';
 	}
 	function remove(i: number) {
-		items = items.filter((_, idx) => idx !== i);
+		slots = slots.map((s, idx) => (idx === i ? null : s));
 		sync();
 	}
 
@@ -238,9 +235,7 @@
 			}
 			const a = (await res.json()) as Item;
 			if (editingIndex !== null) {
-				items = items.map((it, idx) => (idx === editingIndex ? a : it));
-			} else {
-				items = [...items, a];
+				slots = slots.map((s, idx) => (idx === editingIndex ? a : s));
 			}
 			sync();
 			open = false;
@@ -258,29 +253,31 @@
 
 <div class="picker">
 	<div class="grid">
-		{#each items as item, i (item.id)}
-			<div class="polaroid">
-				<button
-					type="button"
-					class="polaroid__frame"
-					onclick={() => openEdit(i)}
-					aria-label="Zeichnung bearbeiten"
-				>
-					<img src={item.thumbUrl} alt="Zeichnung-Vorschau" />
+		{#each slots as slot, i (i)}
+			{#if slot}
+				<div class="polaroid">
+					<button
+						type="button"
+						class="polaroid__frame"
+						onclick={() => openSlot(i)}
+						aria-label="Zeichnung bearbeiten"
+					>
+						<img src={slot.thumbUrl} alt="Zeichnung-Vorschau" />
+					</button>
+					<button
+						type="button"
+						class="polaroid__x"
+						onclick={() => remove(i)}
+						aria-label="Zeichnung entfernen">×</button
+					>
+				</div>
+			{:else}
+				<button type="button" class="polaroid polaroid--add" onclick={() => openSlot(i)}>
+					+ Zeichnen
 				</button>
-				<button
-					type="button"
-					class="polaroid__x"
-					onclick={() => remove(i)}
-					aria-label="Zeichnung entfernen">×</button
-				>
-			</div>
+			{/if}
 		{/each}
-		{#if items.length < max}
-			<button type="button" class="polaroid polaroid--add" onclick={openNew}>+ Zeichnen</button>
-		{/if}
 	</div>
-	{#if limitMsg}<p class="err">{limitMsg}</p>{/if}
 </div>
 
 {#if open}

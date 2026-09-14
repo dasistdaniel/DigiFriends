@@ -7,7 +7,7 @@
 		token,
 		kind,
 		variant = 'photos',
-		max = 6,
+		max = 4,
 		initial = [],
 		// eslint-disable-next-line no-useless-assignment -- $bindable-Default, Svelte-Runes
 		value = $bindable(variant === 'photos' ? [] : '')
@@ -23,50 +23,67 @@
 	} = $props();
 
 	const multiple = $derived(variant === 'photos');
-	let items = $state<Item[]>(untrack(() => [...initial]));
+	/** Feste Anzahl Plaetze (avatar: immer genau einer), Reihenfolge bleibt stabil -
+	 * ein entferntes Bild hinterlaesst eine Luecke an derselben Stelle statt dass
+	 * die uebrigen nachruecken, damit die UI beim Befuellen nicht "springt". */
+	const slotCount = $derived(variant === 'avatar' ? 1 : max);
+	let slots = $state<(Item | null)[]>(
+		untrack(() => {
+			const arr: (Item | null)[] = Array(slotCount).fill(null);
+			initial.slice(0, slotCount).forEach((item, i) => (arr[i] = item));
+			return arr;
+		})
+	);
+	let targetIndex = $state<number | null>(null);
 	let uploading = $state(false);
 	let errorMsg = $state('');
 	let input: HTMLInputElement | undefined = $state();
 
 	function sync() {
-		value = multiple ? items.map((i) => i.id) : (items[0]?.id ?? '');
+		const filled = slots.filter((s): s is Item => s !== null);
+		value = multiple ? filled.map((i) => i.id) : (filled[0]?.id ?? '');
+	}
+
+	function openSlot(i: number) {
+		if (uploading) return;
+		errorMsg = '';
+		targetIndex = i;
+		input?.click();
 	}
 
 	async function handleFiles(files: FileList | null) {
-		if (!files) return;
+		const file = files?.[0];
+		const i = targetIndex;
+		if (!file || i === null) return;
+
 		errorMsg = '';
-		for (const file of Array.from(files)) {
-			if (multiple && items.length >= max) {
-				errorMsg = `Höchstens ${max} Fotos.`;
-				break;
+		uploading = true;
+		try {
+			const fd = new FormData();
+			fd.set('file', file);
+			fd.set('kind', kind);
+			const res = await fetch(`/b/${token}/upload`, {
+				method: 'POST',
+				body: fd,
+				headers: { accept: 'application/json' }
+			});
+			if (!res.ok) {
+				const body = await res.json().catch(() => ({}));
+				errorMsg = body.message ?? 'Upload fehlgeschlagen.';
+				return;
 			}
-			uploading = true;
-			try {
-				const fd = new FormData();
-				fd.set('file', file);
-				fd.set('kind', kind);
-				const res = await fetch(`/b/${token}/upload`, {
-					method: 'POST',
-					body: fd,
-					headers: { accept: 'application/json' }
-				});
-				if (!res.ok) {
-					const body = await res.json().catch(() => ({}));
-					errorMsg = body.message ?? 'Upload fehlgeschlagen.';
-					continue;
-				}
-				const a = (await res.json()) as Item;
-				items = multiple ? [...items, a] : [a];
-			} finally {
-				uploading = false;
-			}
+			const a = (await res.json()) as Item;
+			slots = slots.map((s, idx) => (idx === i ? a : s));
+			sync();
+		} finally {
+			uploading = false;
+			targetIndex = null;
+			if (input) input.value = '';
 		}
-		sync();
-		if (input) input.value = '';
 	}
 
-	function remove(id: string) {
-		items = items.filter((i) => i.id !== id);
+	function remove(i: number) {
+		slots = slots.map((s, idx) => (idx === i ? null : s));
 		sync();
 	}
 </script>
@@ -76,48 +93,48 @@
 		bind:this={input}
 		type="file"
 		accept="image/*"
-		{multiple}
 		class="visually-hidden"
 		onchange={(e) => handleFiles((e.currentTarget as HTMLInputElement).files)}
 	/>
 
 	{#if variant === 'avatar'}
-		<button type="button" class="avatar" onclick={() => input?.click()} disabled={uploading}>
-			{#if items[0]}
-				<img src={items[0].thumbUrl} alt="Avatar-Vorschau" />
+		<button type="button" class="avatar" onclick={() => openSlot(0)} disabled={uploading}>
+			{#if slots[0]}
+				<img src={slots[0].thumbUrl} alt="Avatar-Vorschau" />
 				<span class="avatar__change">ändern</span>
 			{:else}
 				<span class="avatar__add">{uploading ? '…' : '+ Foto'}</span>
 			{/if}
 		</button>
-		{#if items[0]}
-			<button type="button" class="link" onclick={() => remove(items[0].id)}>entfernen</button>
+		{#if slots[0]}
+			<button type="button" class="link" onclick={() => remove(0)}>entfernen</button>
 		{/if}
 	{:else}
 		<div class="grid">
-			{#each items as item (item.id)}
-				<div class="polaroid">
-					<span class="polaroid__frame">
-						<img src={item.thumbUrl} alt="Foto-Vorschau" />
-					</span>
+			{#each slots as slot, i (i)}
+				{#if slot}
+					<div class="polaroid">
+						<span class="polaroid__frame">
+							<img src={slot.thumbUrl} alt="Foto-Vorschau" />
+						</span>
+						<button
+							type="button"
+							class="polaroid__x"
+							onclick={() => remove(i)}
+							aria-label="Foto entfernen">×</button
+						>
+					</div>
+				{:else}
 					<button
 						type="button"
-						class="polaroid__x"
-						onclick={() => remove(item.id)}
-						aria-label="Foto entfernen">×</button
+						class="polaroid polaroid--add"
+						onclick={() => openSlot(i)}
+						disabled={uploading}
 					>
-				</div>
+						{uploading && targetIndex === i ? '…' : '+'}
+					</button>
+				{/if}
 			{/each}
-			{#if items.length < max}
-				<button
-					type="button"
-					class="polaroid polaroid--add"
-					onclick={() => input?.click()}
-					disabled={uploading}
-				>
-					{uploading ? '…' : '+'}
-				</button>
-			{/if}
 		</div>
 	{/if}
 

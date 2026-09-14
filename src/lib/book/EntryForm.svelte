@@ -115,7 +115,12 @@
 				</div>
 				<div class="q">
 					<span class="label">Zeichnungen <span class="opt">optional</span></span>
-					<DrawingPicker {token} initial={initial?.drawings ?? []} bind:value={drawingAssetIds} />
+					<DrawingPicker
+						{token}
+						max={4}
+						initial={initial?.drawings ?? []}
+						bind:value={drawingAssetIds}
+					/>
 				</div>
 				{#each leftQuestions as q (q.id)}
 					<label class="q">
@@ -162,6 +167,7 @@
 						{token}
 						kind="photo"
 						variant="photos"
+						max={4}
 						initial={initial?.photos ?? []}
 						bind:value={photoAssetIds}
 					/>
