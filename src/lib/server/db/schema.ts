@@ -234,6 +234,10 @@ export const assetRelations = relations(asset, ({ one }) => ({
 	entry: one(entry, { fields: [asset.entryId], references: [entry.id] })
 }));
 
+export const recoveryRequestRelations = relations(recoveryRequest, ({ one }) => ({
+	book: one(book, { fields: [recoveryRequest.bookId], references: [book.id] })
+}));
+
 /* ---------------------------------------------------------------- types --- */
 
 export type Book = typeof book.$inferSelect;
