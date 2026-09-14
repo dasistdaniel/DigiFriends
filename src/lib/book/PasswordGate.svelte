@@ -4,8 +4,9 @@
 	let {
 		token,
 		bookTitle,
-		failed = false
-	}: { token: string; bookTitle: string; failed?: boolean } = $props();
+		failed = false,
+		rateLimited = false
+	}: { token: string; bookTitle: string; failed?: boolean; rateLimited?: boolean } = $props();
 
 	function focusOnMount(node: HTMLInputElement) {
 		node.focus();
@@ -31,7 +32,11 @@
 					use:focusOnMount
 				/>
 			</label>
-			{#if failed}<p class="err">Passwort stimmt nicht.</p>{/if}
+			{#if rateLimited}
+				<p class="err">Zu viele Versuche. Bitte warte ein paar Minuten und versuch es erneut.</p>
+			{:else if failed}
+				<p class="err">Passwort stimmt nicht.</p>
+			{/if}
 			<button type="submit">Öffnen</button>
 		</form>
 	</section>

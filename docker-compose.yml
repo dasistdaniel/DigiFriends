@@ -17,6 +17,11 @@ services:
       BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-12000000}
       SMTP_URL: ${SMTP_URL:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      # Genau ein Reverse-Proxy-Hop davor (siehe .env.example): adapter-node
+      # liest die echte Besucher-IP aus X-Forwarded-For statt der Proxy-IP,
+      # damit IP-basiertes Rate-Limiting funktioniert.
+      ADDRESS_HEADER: x-forwarded-for
+      XFF_DEPTH: 1
     volumes:
       - uploads:/data/uploads
     depends_on:

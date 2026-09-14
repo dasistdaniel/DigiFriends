@@ -6,7 +6,12 @@ import { newToken, hashToken } from '$lib/server/crypto';
 import { loadBookAccess, requireWrite } from '$lib/server/guard';
 import { MAX_DRAWINGS_PER_ENTRY, MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
 import { pickBySection } from '$lib/templates';
+import { rateLimit } from '$lib/server/rateLimit';
 import type { Actions, PageServerLoad } from './$types';
+
+/** Grosszuegig, damit z. B. mehrere Gaeste hinterm selben WLAN nicht ausgebremst werden. */
+const SUBMIT_LIMIT = 15;
+const SUBMIT_WINDOW_MS = 10 * 60 * 1000;
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const { access, locked } = await loadBookAccess(params.token, cookies);
@@ -46,7 +51,7 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 };
 
 export const actions: Actions = {
-	submit: async ({ request, params, cookies }) => {
+	submit: async ({ request, params, cookies, getClientAddress }) => {
 		const { access, locked } = await loadBookAccess(params.token, cookies);
 		if (locked) return fail(403, { message: 'Gesperrt.' });
 		requireWrite(access);
@@ -54,7 +59,31 @@ export const actions: Actions = {
 			return fail(409, { message: 'Dieses Buch nimmt keine neuen Einträge mehr an.' });
 		}
 
+		const allowed = rateLimit(`submit:${getClientAddress()}:${access.book.id}`, {
+			limit: SUBMIT_LIMIT,
+			windowMs: SUBMIT_WINDOW_MS
+		});
+		if (!allowed) {
+			return fail(429, {
+				message: 'Zu viele Einträge in kurzer Zeit. Bitte warte ein paar Minuten.'
+			});
+		}
+
 		const fd = await request.formData();
+
+		// Honeypot: fuer Menschen unsichtbares Feld (siehe EntryForm.svelte).
+		// Bots, die Formulare blind ausfuellen, tappen rein - wir tun so, als
+		// waere alles gutgegangen, ohne wirklich etwas zu speichern.
+		if (String(fd.get('website') ?? '').trim()) {
+			return {
+				done: {
+					published: access.book.moderationMode === 'instant',
+					editLink: `${ORIGIN}/b/${params.token}/eintrag/${newToken()}`,
+					readLink: `${ORIGIN}/b/${params.token}/lesen`
+				}
+			};
+		}
+
 		const displayName = String(fd.get('displayName') ?? '').trim();
 		const closingLine = String(fd.get('closingLine') ?? '').trim();
 		const consent = fd.get('consent') === 'on';

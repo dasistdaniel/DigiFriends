@@ -78,6 +78,12 @@
 >
 	{#if message}<p class="formError">{message}</p>{/if}
 
+	<!-- Honeypot gegen Formular-Bots: fuer Menschen unsichtbar, nie ausfuellen. -->
+	<div class="hp" aria-hidden="true">
+		<label for="website">Website</label>
+		<input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+	</div>
+
 	<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
 	<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
 	<input type="hidden" name="drawingAssetIds" value={drawingAssetIds.join(',')} />
@@ -209,6 +215,14 @@
 		border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--surface-line));
 		border-radius: 6px;
 		padding: 0.5rem 0.8rem;
+	}
+	.hp {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 
 	.spread {

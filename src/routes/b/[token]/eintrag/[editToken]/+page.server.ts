@@ -6,7 +6,11 @@ import { loadBookAccess } from '$lib/server/guard';
 import { findEditableEntry } from '$lib/server/entries';
 import { deleteAsset } from '$lib/server/storage';
 import { MAX_DRAWINGS_PER_ENTRY, MAX_PHOTOS_PER_ENTRY } from '$lib/server/env';
+import { rateLimit } from '$lib/server/rateLimit';
 import type { Actions, PageServerLoad } from './$types';
+
+const SAVE_LIMIT = 30;
+const SAVE_WINDOW_MS = 10 * 60 * 1000;
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const { access, locked } = await loadBookAccess(params.token, cookies);
@@ -56,14 +60,28 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 };
 
 export const actions: Actions = {
-	save: async ({ request, params, cookies }) => {
+	save: async ({ request, params, cookies, getClientAddress }) => {
 		const { access, locked } = await loadBookAccess(params.token, cookies);
 		if (locked) return fail(403, { message: 'Gesperrt.' });
+
+		const allowed = rateLimit(`save:${getClientAddress()}:${access.book.id}`, {
+			limit: SAVE_LIMIT,
+			windowMs: SAVE_WINDOW_MS
+		});
+		if (!allowed) {
+			return fail(429, { message: 'Zu viele Versuche in kurzer Zeit. Bitte warte etwas.' });
+		}
 
 		const e = await findEditableEntry(access, params.editToken);
 		if (!e) return fail(404, { message: 'Eintrag nicht gefunden.' });
 
 		const fd = await request.formData();
+
+		// Honeypot: siehe /schreiben – fuer Menschen unsichtbares Feld.
+		if (String(fd.get('website') ?? '').trim()) {
+			return { saved: true };
+		}
+
 		const displayName = String(fd.get('displayName') ?? '').trim();
 		const closingLine = String(fd.get('closingLine') ?? '').trim();
 
