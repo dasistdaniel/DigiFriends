@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import { asset, book } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
 import { deleteAsset } from '$lib/server/storage';
+import { logAudit } from '$lib/server/audit';
 import { bookThemes, resolveBookThemeId } from '$lib/bookThemes';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -94,6 +95,14 @@ export const actions: Actions = {
 			.update(book)
 			.set({ status: to as 'open' | 'closed' | 'archived', updatedAt: new Date() })
 			.where(eq(book.id, b.id));
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: 'book.status-change',
+			meta: { to, bookTitle: b.title }
+		});
+
 		return { saved: true };
 	},
 
@@ -103,6 +112,13 @@ export const actions: Actions = {
 		if (String((await request.formData()).get('confirm') ?? '') !== b.title) {
 			return fail(400, { message: 'Der eingegebene Titel stimmt nicht.' });
 		}
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: 'book.delete',
+			meta: { bookTitle: b.title }
+		});
 
 		const assets = await db.query.asset.findMany({ where: eq(asset.bookId, b.id) });
 		await db.delete(book).where(eq(book.id, b.id));

@@ -4,6 +4,7 @@ import { db } from '$lib/server/db';
 import { asset, entry } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
 import { deleteAsset } from '$lib/server/storage';
+import { logAudit } from '$lib/server/audit';
 import type { Actions, PageServerLoad } from './$types';
 
 async function bookId(params: { token: string }, cookies: import('@sveltejs/kit').Cookies) {
@@ -58,10 +59,17 @@ export const actions: Actions = {
 		const id = await bookId(params, cookies);
 		if (!id) return fail(403);
 		const entryId = String((await request.formData()).get('id') ?? '');
-		await db
+		const [e] = await db
 			.update(entry)
 			.set({ state: 'published', publishedAt: new Date() })
-			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)));
+			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)))
+			.returning({ displayName: entry.displayName });
+		await logAudit({
+			bookId: id,
+			actorRole: 'admin',
+			action: 'entry.publish',
+			meta: { entryDisplayName: e?.displayName }
+		});
 		return { ok: true };
 	},
 
@@ -69,10 +77,17 @@ export const actions: Actions = {
 		const id = await bookId(params, cookies);
 		if (!id) return fail(403);
 		const entryId = String((await request.formData()).get('id') ?? '');
-		await db
+		const [e] = await db
 			.update(entry)
 			.set({ state: 'hidden' })
-			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)));
+			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)))
+			.returning({ displayName: entry.displayName });
+		await logAudit({
+			bookId: id,
+			actorRole: 'admin',
+			action: 'entry.hide',
+			meta: { entryDisplayName: e?.displayName }
+		});
 		return { ok: true };
 	},
 
@@ -80,10 +95,17 @@ export const actions: Actions = {
 		const id = await bookId(params, cookies);
 		if (!id) return fail(403);
 		const entryId = String((await request.formData()).get('id') ?? '');
-		await db
+		const [e] = await db
 			.update(entry)
 			.set({ state: 'published' })
-			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)));
+			.where(and(eq(entry.id, entryId), eq(entry.bookId, id)))
+			.returning({ displayName: entry.displayName });
+		await logAudit({
+			bookId: id,
+			actorRole: 'admin',
+			action: 'entry.unhide',
+			meta: { entryDisplayName: e?.displayName }
+		});
 		return { ok: true };
 	},
 
@@ -92,9 +114,20 @@ export const actions: Actions = {
 		if (!id) return fail(403);
 		const entryId = String((await request.formData()).get('id') ?? '');
 
-		const assets = await db.query.asset.findMany({
-			where: and(eq(asset.entryId, entryId), eq(asset.bookId, id))
+		const [assets, existing] = await Promise.all([
+			db.query.asset.findMany({ where: and(eq(asset.entryId, entryId), eq(asset.bookId, id)) }),
+			db.query.entry.findFirst({
+				where: and(eq(entry.id, entryId), eq(entry.bookId, id)),
+				columns: { displayName: true }
+			})
+		]);
+		await logAudit({
+			bookId: id,
+			actorRole: 'admin',
+			action: 'entry.delete',
+			meta: { entryDisplayName: existing?.displayName }
 		});
+
 		await db.delete(entry).where(and(eq(entry.id, entryId), eq(entry.bookId, id)));
 		await Promise.allSettled(assets.map((a) => deleteAsset(id, a.id)));
 		return { ok: true };

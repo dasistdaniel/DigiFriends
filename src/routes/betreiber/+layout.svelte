@@ -8,6 +8,7 @@
 	const current = $derived(page.url.pathname);
 	const booksHref = resolve('/betreiber');
 	const statsHref = resolve('/betreiber/statistik');
+	const verlaufHref = resolve('/betreiber/verlauf');
 </script>
 
 <svelte:head><title>Betreiber-Bereich</title></svelte:head>
@@ -24,6 +25,7 @@
 		<nav class="tabs">
 			<a class="tab" class:tab--on={current === booksHref} href={booksHref}>Bücher</a>
 			<a class="tab" class:tab--on={current === statsHref} href={statsHref}>Statistik</a>
+			<a class="tab" class:tab--on={current === verlaufHref} href={verlaufHref}>Verlauf</a>
 		</nav>
 
 		<main class="body">

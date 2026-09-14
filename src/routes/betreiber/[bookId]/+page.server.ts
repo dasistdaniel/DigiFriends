@@ -3,6 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { book, bookAccess, entry, invite, question } from '$lib/server/db/schema';
 import { hashToken, newToken } from '$lib/server/crypto';
+import { logAudit } from '$lib/server/audit';
 import { ORIGIN } from '$lib/server/env';
 import { isOperatorSession, operatorEnabled } from '$lib/server/operator';
 import type { Actions, PageServerLoad } from './$types';
@@ -91,6 +92,18 @@ export const actions: Actions = {
 					and(eq(bookAccess.bookId, params.bookId), eq(bookAccess.role, role as 'admin' | 'read'))
 				);
 		}
+
+		const b = await db.query.book.findFirst({
+			where: eq(book.id, params.bookId),
+			columns: { title: true }
+		});
+		await logAudit({
+			bookId: params.bookId,
+			actorRole: 'operator',
+			action: 'access.regenerate',
+			meta: { role, bookTitle: b?.title }
+		});
+
 		return { newLink: { role, url: `${ORIGIN}/b/${token}/${viewPath[role]}` } };
 	}
 };

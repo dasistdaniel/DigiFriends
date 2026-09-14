@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import { bookAccess, invite } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
 import { hashPassword, hashToken, newToken } from '$lib/server/crypto';
+import { logAudit } from '$lib/server/audit';
 import { ORIGIN } from '$lib/server/env';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -76,6 +77,14 @@ export const actions: Actions = {
 				.set({ passwordHash: hash })
 				.where(and(eq(bookAccess.bookId, b.id), eq(bookAccess.role, role as 'admin' | 'read')));
 		}
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: hash ? 'access.password-set' : 'access.password-removed',
+			meta: { role, bookTitle: b.title }
+		});
+
 		return { done: `passwort-${role}` };
 	},
 
@@ -98,6 +107,14 @@ export const actions: Actions = {
 				.set({ tokenHash: hashToken(token) })
 				.where(and(eq(bookAccess.bookId, b.id), eq(bookAccess.role, role as 'admin' | 'read')));
 		}
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: 'access.regenerate',
+			meta: { role, bookTitle: b.title }
+		});
+
 		return { newLink: { role, url: `${ORIGIN}/b/${token}/${viewPath[role]}` } };
 	},
 
@@ -127,6 +144,14 @@ export const actions: Actions = {
 			tokenHash: hashToken(token),
 			maxEntries: 1
 		});
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: 'invite.create',
+			meta: { label: parsed.data.label, bookTitle: b.title }
+		});
+
 		return {
 			newLink: { role: 'invite', url: `${ORIGIN}/b/${token}/schreiben`, label: parsed.data.label }
 		};
@@ -136,10 +161,19 @@ export const actions: Actions = {
 		const b = await adminBook(params, cookies);
 		if (!b) return fail(403, { message: 'Kein Zugriff.' });
 		const id = String((await request.formData()).get('id') ?? '');
-		await db
+		const [revoked] = await db
 			.update(invite)
 			.set({ revokedAt: new Date() })
-			.where(and(eq(invite.id, id), eq(invite.bookId, b.id), eq(invite.kind, 'personal')));
+			.where(and(eq(invite.id, id), eq(invite.bookId, b.id), eq(invite.kind, 'personal')))
+			.returning({ label: invite.label });
+
+		await logAudit({
+			bookId: b.id,
+			actorRole: 'admin',
+			action: 'invite.revoke',
+			meta: { label: revoked?.label, bookTitle: b.title }
+		});
+
 		return { done: 'revoke' };
 	}
 };

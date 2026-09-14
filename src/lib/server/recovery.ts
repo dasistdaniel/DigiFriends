@@ -3,6 +3,7 @@ import { db } from './db';
 import { book, bookAccess, recoveryRequest } from './db/schema';
 import { hashToken, newToken } from './crypto';
 import { sendMail } from './mail';
+import { logAudit } from './audit';
 import { MAIL_ENABLED, ORIGIN } from './env';
 
 /** Wiederherstellungs-Links sind eine Stunde gültig und nur einmal nutzbar. */
@@ -92,6 +93,13 @@ export async function redeemRecovery(token: string): Promise<RecoveryRedeem> {
 			.update(recoveryRequest)
 			.set({ usedAt: new Date() })
 			.where(eq(recoveryRequest.id, row.id));
+	});
+
+	await logAudit({
+		bookId: row.bookId,
+		actorRole: 'system',
+		action: 'access.recovered',
+		meta: { bookTitle: row.book.title }
 	});
 
 	return { ok: true, bookTitle: row.book.title, adminLink: `${ORIGIN}/b/${newAdminToken}/admin` };

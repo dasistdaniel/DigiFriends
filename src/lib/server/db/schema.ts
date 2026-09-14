@@ -186,7 +186,9 @@ export const recoveryRequest = pgTable(
 
 export const auditLog = pgTable('audit_log', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	bookId: uuid('book_id').references(() => book.id, { onDelete: 'cascade' }),
+	/** onDelete 'set null' (nicht cascade): der Log-Eintrag - inkl. Buchtitel
+	 * in meta - soll ein geloeschtes Buch ueberleben, nicht mit ihm verschwinden. */
+	bookId: uuid('book_id').references(() => book.id, { onDelete: 'set null' }),
 	actorRole: text('actor_role'),
 	action: text('action').notNull(),
 	meta: jsonb('meta'),
@@ -236,6 +238,10 @@ export const assetRelations = relations(asset, ({ one }) => ({
 
 export const recoveryRequestRelations = relations(recoveryRequest, ({ one }) => ({
 	book: one(book, { fields: [recoveryRequest.bookId], references: [book.id] })
+}));
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+	book: one(book, { fields: [auditLog.bookId], references: [book.id] })
 }));
 
 /* ---------------------------------------------------------------- types --- */

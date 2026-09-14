@@ -5,6 +5,7 @@ import { desc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { book } from '$lib/server/db/schema';
 import { computeBookActivity } from '$lib/server/bookActivity';
+import { logAudit } from '$lib/server/audit';
 import { INACTIVE_AFTER_DAYS, UPLOAD_DIR } from '$lib/server/env';
 import {
 	clearOperatorSession,
@@ -74,10 +75,18 @@ export const actions: Actions = {
 		const to = String(fd.get('to') ?? '');
 		if (!id || (to !== 'suspend' && to !== 'unsuspend')) return fail(400);
 
-		await db
+		const [b] = await db
 			.update(book)
 			.set({ suspendedAt: to === 'suspend' ? new Date() : null, updatedAt: new Date() })
-			.where(eq(book.id, id));
+			.where(eq(book.id, id))
+			.returning({ title: book.title });
+
+		await logAudit({
+			bookId: id,
+			actorRole: 'operator',
+			action: to === 'suspend' ? 'book.suspend' : 'book.unsuspend',
+			meta: { bookTitle: b?.title }
+		});
 
 		return { saved: true };
 	},
@@ -86,6 +95,17 @@ export const actions: Actions = {
 		if (!isOperatorSession(cookies)) return fail(403);
 		const id = String((await request.formData()).get('id') ?? '');
 		if (!id) return fail(400);
+
+		const existing = await db.query.book.findFirst({
+			where: eq(book.id, id),
+			columns: { title: true }
+		});
+		await logAudit({
+			bookId: id,
+			actorRole: 'operator',
+			action: 'book.delete',
+			meta: { bookTitle: existing?.title }
+		});
 
 		await db.delete(book).where(eq(book.id, id));
 		await rm(join(UPLOAD_DIR, id), { recursive: true, force: true });
