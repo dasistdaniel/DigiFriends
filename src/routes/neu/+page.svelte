@@ -163,9 +163,13 @@
 								>
 									{previewId === tpl.id
 										? 'Fragen verbergen'
-										: `${tpl.questions.length} Fragen ansehen`}
+										: `${tpl.questions.length} mögliche Fragen ansehen`}
 								</button>
 								{#if previewId === tpl.id}
+									<p class="card__pick-hint">
+										Beim Anlegen werden {tpl.pick.left + tpl.pick.right} davon zufällig ausgewählt – alle,
+										die ins Buch schreiben, bekommen dieselbe Auswahl.
+									</p>
 									<ul class="card__questions">
 										{#each tpl.questions as q (q.label)}
 											<li>{q.label}</li>
@@ -393,10 +397,16 @@
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
+	.card__pick-hint {
+		margin: 0.6rem 0 0;
+		padding-top: 0.6rem;
+		border-top: 1px dashed var(--surface-line);
+		font-size: var(--step--1);
+		color: var(--ink-300);
+	}
 	.card__questions {
 		margin: 0;
 		padding: 0.6rem 0 0 1.1rem;
-		border-top: 1px dashed var(--surface-line);
 		display: flex;
 		flex-direction: column;
 		gap: 0.35rem;

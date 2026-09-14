@@ -186,6 +186,10 @@
 			</form>
 
 			{#if previewTemplate}
+				<p class="note">
+					{previewTemplate.pick.left + previewTemplate.pick.right} von {previewTemplate.questions
+						.length} Fragen werden beim Anwenden zufällig ausgewählt.
+				</p>
 				<ul class="tpl__preview">
 					{#each previewTemplate.questions as q (q.label)}
 						<li>{q.label}</li>

@@ -4,7 +4,7 @@ import { and, asc, eq, notInArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { question } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
-import { templates, getTemplate } from '$lib/templates';
+import { templates, getTemplate, pickTemplateQuestions } from '$lib/templates';
 import type { Actions, PageServerLoad } from './$types';
 
 const questionSchema = z.object({
@@ -45,11 +45,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 			section: q.section,
 			required: q.required
 		})),
-		templates: templates.map(({ id, name, description, questions }) => ({
+		templates: templates.map(({ id, name, description, questions, pick }) => ({
 			id,
 			name,
 			description,
-			questions
+			questions,
+			pick
 		}))
 	};
 };
@@ -126,7 +127,7 @@ export const actions: Actions = {
 
 		await replaceQuestions(
 			bookId,
-			tpl.questions.map((q) => ({
+			pickTemplateQuestions(tpl).map((q) => ({
 				label: q.label,
 				fieldType: q.fieldType,
 				section: q.section,

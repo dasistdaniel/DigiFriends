@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { db } from './db';
 import { book, bookAccess, invite, question, type Book } from './db/schema';
 import { hashPassword, hashToken, newToken, verifyPassword } from './crypto';
-import { getTemplate } from '$lib/templates';
+import { getTemplate, pickTemplateQuestions } from '$lib/templates';
 
 export type CreateBookInput = {
 	title: string;
@@ -70,7 +70,7 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 		});
 
 		await tx.insert(question).values(
-			tpl.questions.map((q, i) => ({
+			pickTemplateQuestions(tpl).map((q, i) => ({
 				bookId: created.id,
 				position: i,
 				label: q.label,
