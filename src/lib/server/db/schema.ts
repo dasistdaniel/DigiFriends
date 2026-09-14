@@ -43,6 +43,9 @@ export const book = pgTable('book', {
 	status: bookStatus('status').notNull().default('open'),
 	/** offener /schreiben-Link aktiv? Personalisierte Einladungen bleiben davon unberührt */
 	openWriteEnabled: boolean('open_write_enabled').notNull().default(true),
+	/** Wie viele Fragen aus dem Pool jede Person je Seite zufällig vorgelegt bekommt. */
+	questionPickLeft: integer('question_pick_left').notNull().default(4),
+	questionPickRight: integer('question_pick_right').notNull().default(4),
 	recoveryEmail: text('recovery_email'),
 	/** vom Betreiber gesperrt (Missbrauch etc.) – unabhängig vom eigenen status */
 	suspendedAt: timestamp('suspended_at', { withTimezone: true }),

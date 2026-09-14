@@ -2,9 +2,9 @@ import { fail } from '@sveltejs/kit';
 import { z } from 'zod';
 import { and, asc, eq, notInArray } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { question } from '$lib/server/db/schema';
+import { book, question } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
-import { templates, getTemplate, pickTemplateQuestions } from '$lib/templates';
+import { templates, getTemplate } from '$lib/templates';
 import type { Actions, PageServerLoad } from './$types';
 
 const questionSchema = z.object({
@@ -14,7 +14,7 @@ const questionSchema = z.object({
 	section: z.enum(['left', 'right']),
 	required: z.boolean()
 });
-const payloadSchema = z.array(questionSchema).min(1).max(40);
+const payloadSchema = z.array(questionSchema).min(1).max(60);
 
 async function adminBookId(
 	params: { token: string },
@@ -127,13 +127,17 @@ export const actions: Actions = {
 
 		await replaceQuestions(
 			bookId,
-			pickTemplateQuestions(tpl).map((q) => ({
+			tpl.questions.map((q) => ({
 				label: q.label,
 				fieldType: q.fieldType,
 				section: q.section,
 				required: q.required ?? false
 			}))
 		);
+		await db
+			.update(book)
+			.set({ questionPickLeft: tpl.pick.left, questionPickRight: tpl.pick.right })
+			.where(eq(book.id, bookId));
 		return { saved: true, applied: tpl.name };
 	}
 };

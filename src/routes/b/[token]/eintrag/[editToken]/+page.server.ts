@@ -15,10 +15,11 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	const e = await findEditableEntry(access, params.editToken);
 	if (!e) error(404, 'Dieser Eintrag existiert nicht (mehr).');
 
-	const questions = await db.query.question.findMany({
-		where: eq(question.bookId, access.book.id),
-		orderBy: asc(question.position)
-	});
+	// Die Fragen dieses Eintrags sind die, die ihm beim Schreiben zufaellig
+	// zugewiesen wurden – nicht der (inzwischen ggf. groessere) Buch-Pool.
+	const questions = [...e.answers]
+		.sort((a, b) => a.question.position - b.question.position)
+		.map((a) => a.question);
 
 	const assetBase = `/b/${params.token}/asset`;
 	type Pos = { order?: number };
@@ -66,10 +67,20 @@ export const actions: Actions = {
 		const displayName = String(fd.get('displayName') ?? '').trim();
 		const closingLine = String(fd.get('closingLine') ?? '').trim();
 
-		const questions = await db.query.question.findMany({
+		const pool = await db.query.question.findMany({
 			where: eq(question.bookId, access.book.id),
 			orderBy: asc(question.position)
 		});
+
+		// Nur die Fragen akzeptieren, die diesem Eintrag beim Laden angezeigt
+		// wurden (gegen den echten Pool abgeglichen, spoof-sicher).
+		const shownIds = new Set(
+			String(fd.get('shownQuestionIds') ?? '')
+				.split(',')
+				.map((s) => s.trim())
+				.filter(Boolean)
+		);
+		const questions = pool.filter((q) => shownIds.has(q.id));
 		const answers = questions.map((q) => ({
 			questionId: q.id,
 			value: String(fd.get(`q_${q.id}`) ?? '').trim()
@@ -143,14 +154,13 @@ export const actions: Actions = {
 				})
 				.where(eq(entry.id, e.id));
 
-			// Antworten neu setzen
+			// Antworten neu setzen (fuer jede zugewiesene Frage, auch leer gelassene)
 			await tx.delete(entryAnswer).where(eq(entryAnswer.entryId, e.id));
-			const withValues = answers.filter((a) => a.value.length > 0);
-			if (withValues.length) {
+			if (answers.length) {
 				await tx
 					.insert(entryAnswer)
 					.values(
-						withValues.map((a) => ({ entryId: e.id, questionId: a.questionId, valueText: a.value }))
+						answers.map((a) => ({ entryId: e.id, questionId: a.questionId, valueText: a.value }))
 					);
 			}
 

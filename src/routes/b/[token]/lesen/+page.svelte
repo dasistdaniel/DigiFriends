@@ -7,12 +7,8 @@
 
 	// Wenn gesperrt, übernimmt das Layout die Passwort-Abfrage.
 	const book = $derived(data.locked ? null : data.book);
-	const questions = $derived(data.locked ? [] : data.questions);
 	const entries = $derived(data.locked ? [] : data.entries);
 	const gallery = $derived(data.locked ? [] : data.gallery);
-
-	const leftQuestions = $derived(questions.filter((q) => q.section === 'left'));
-	const rightQuestions = $derived(questions.filter((q) => q.section === 'right'));
 
 	const TOC_PER_PAGE = 10;
 	const tocPages = $derived(Math.max(1, Math.ceil(entries.length / TOC_PER_PAGE)));
@@ -112,10 +108,10 @@
 							{/if}
 						</div>
 						<dl class="entry__qa">
-							{#each leftQuestions as q (q.id)}
+							{#each e.leftAnswers as a (a.label)}
 								<div>
-									<dt class="label">{q.label}</dt>
-									<dd class="hand">{e.answers[q.id] || '—'}</dd>
+									<dt class="label">{a.label}</dt>
+									<dd class="hand">{a.value}</dd>
 								</div>
 							{/each}
 						</dl>
@@ -145,10 +141,10 @@
 							</div>
 						{/if}
 						<dl class="entry__qa">
-							{#each rightQuestions as q (q.id)}
+							{#each e.rightAnswers as a (a.label)}
 								<div>
-									<dt class="label">{q.label}</dt>
-									<dd class="hand">{e.answers[q.id] || '—'}</dd>
+									<dt class="label">{a.label}</dt>
+									<dd class="hand">{a.value}</dd>
 								</div>
 							{/each}
 						</dl>

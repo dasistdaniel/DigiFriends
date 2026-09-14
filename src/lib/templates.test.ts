@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
 	defaultTemplateId,
 	getTemplate,
-	pickTemplateQuestions,
+	pickBySection,
 	templates,
-	type Template
+	type TemplateQuestion
 } from './templates';
 
 describe('templates', () => {
@@ -43,10 +43,10 @@ describe('getTemplate', () => {
 	});
 });
 
-describe('pickTemplateQuestions', () => {
-	it('picks exactly pick.left + pick.right questions, split by section, for every template', () => {
+describe('pickBySection', () => {
+	it('picks exactly the requested count per section, for every template pool', () => {
 		for (const t of templates) {
-			const picked = pickTemplateQuestions(t);
+			const picked = pickBySection(t.questions, t.pick);
 			expect(picked.filter((q) => q.section === 'left').length).toBe(t.pick.left);
 			expect(picked.filter((q) => q.section === 'right').length).toBe(t.pick.right);
 		}
@@ -54,7 +54,7 @@ describe('pickTemplateQuestions', () => {
 
 	it('never picks the same question twice', () => {
 		for (const t of templates) {
-			const labels = pickTemplateQuestions(t).map((q) => q.label);
+			const labels = pickBySection(t.questions, t.pick).map((q) => q.label);
 			expect(new Set(labels).size).toBe(labels.length);
 		}
 	});
@@ -62,26 +62,26 @@ describe('pickTemplateQuestions', () => {
 	it('only picks questions that exist in the pool', () => {
 		for (const t of templates) {
 			const pool = new Set(t.questions.map((q) => q.label));
-			for (const q of pickTemplateQuestions(t)) {
+			for (const q of pickBySection(t.questions, t.pick)) {
 				expect(pool.has(q.label)).toBe(true);
 			}
 		}
 	});
 
 	it('always includes required questions', () => {
-		const tpl: Template = {
-			id: 'test',
-			name: 'Test',
-			description: '',
-			pick: { left: 1, right: 0 },
-			questions: [
-				{ label: 'must appear', fieldType: 'short', section: 'left', required: true },
-				{ label: 'optional a', fieldType: 'short', section: 'left' },
-				{ label: 'optional b', fieldType: 'short', section: 'left' }
-			]
-		};
-		const picked = pickTemplateQuestions(tpl);
+		const pool: TemplateQuestion[] = [
+			{ label: 'must appear', fieldType: 'short', section: 'left', required: true },
+			{ label: 'optional a', fieldType: 'short', section: 'left' },
+			{ label: 'optional b', fieldType: 'short', section: 'left' }
+		];
+		const picked = pickBySection(pool, { left: 1, right: 0 });
 		expect(picked.map((q) => q.label)).toContain('must appear');
+	});
+
+	it('caps at the pool size when count exceeds it, instead of erroring', () => {
+		const pool: TemplateQuestion[] = [{ label: 'only one', fieldType: 'short', section: 'left' }];
+		const picked = pickBySection(pool, { left: 5, right: 0 });
+		expect(picked).toHaveLength(1);
 	});
 
 	it('draws a varying combination across repeated calls when the pool allows it', () => {
@@ -93,7 +93,7 @@ describe('pickTemplateQuestions', () => {
 
 		const combos = new Set(
 			Array.from({ length: 30 }, () =>
-				pickTemplateQuestions(tpl!)
+				pickBySection(tpl!.questions, tpl!.pick)
 					.map((q) => q.label)
 					.sort()
 					.join('|')

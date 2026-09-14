@@ -13,11 +13,11 @@ export async function findEditableEntry(access: BookAccessResult, key: string) {
 	if (access.role === 'admin') {
 		return db.query.entry.findFirst({
 			where: and(eq(entry.id, key), eq(entry.bookId, access.book.id)),
-			with: { answers: true, assets: true }
+			with: { answers: { with: { question: true } }, assets: true }
 		});
 	}
 	return db.query.entry.findFirst({
 		where: and(eq(entry.editTokenHash, hashToken(key)), eq(entry.bookId, access.book.id)),
-		with: { answers: true, assets: true }
+		with: { answers: { with: { question: true } }, assets: true }
 	});
 }

@@ -5,6 +5,7 @@ import { asset, entry, entryAnswer, invite, question } from '$lib/server/db/sche
 import { newToken, hashToken } from '$lib/server/crypto';
 import { loadBookAccess, requireWrite } from '$lib/server/guard';
 import { MAX_DRAWINGS_PER_ENTRY, MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
+import { pickBySection } from '$lib/templates';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
@@ -16,9 +17,16 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 		return { locked: false as const, closed: true, book: { title: access.book.title } };
 	}
 
-	const questions = await db.query.question.findMany({
+	const pool = await db.query.question.findMany({
 		where: eq(question.bookId, access.book.id),
 		orderBy: asc(question.position)
+	});
+
+	// Jede Person bekommt ihre eigene zufaellige Auswahl aus dem vollen Fragen-Pool
+	// des Buchs, damit sich die Seiten der Eintraege unterscheiden.
+	const questions = pickBySection(pool, {
+		left: access.book.questionPickLeft,
+		right: access.book.questionPickRight
 	});
 
 	return {
@@ -51,10 +59,20 @@ export const actions: Actions = {
 		const closingLine = String(fd.get('closingLine') ?? '').trim();
 		const consent = fd.get('consent') === 'on';
 
-		const questions = await db.query.question.findMany({
+		const pool = await db.query.question.findMany({
 			where: eq(question.bookId, access.book.id),
 			orderBy: asc(question.position)
 		});
+
+		// Nur die Fragen akzeptieren, die dieser Person beim Laden tatsaechlich
+		// angezeigt wurden (gegen den echten Pool abgeglichen, spoof-sicher).
+		const shownIds = new Set(
+			String(fd.get('shownQuestionIds') ?? '')
+				.split(',')
+				.map((s) => s.trim())
+				.filter(Boolean)
+		);
+		const questions = pool.filter((q) => shownIds.has(q.id));
 
 		const answers = questions.map((q) => ({
 			questionId: q.id,
@@ -156,10 +174,11 @@ export const actions: Actions = {
 				})
 				.returning({ id: entry.id });
 
-			const withValues = answers.filter((a) => a.value.length > 0);
-			if (withValues.length) {
+			// Fuer jede zugewiesene Frage einen Eintrag anlegen (auch leer gelassene),
+			// damit die genaue Auswahl beim spaeteren Bearbeiten rekonstruierbar bleibt.
+			if (answers.length) {
 				await tx.insert(entryAnswer).values(
-					withValues.map((a) => ({
+					answers.map((a) => ({
 						entryId: created.id,
 						questionId: a.questionId,
 						valueText: a.value

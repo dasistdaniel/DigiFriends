@@ -1,8 +1,8 @@
 /**
  * Fragen-Vorlagen. Jede Vorlage ist ein größerer Fragen-Pool je Seite
- * (links/rechts); beim Anlegen eines Buchs wird daraus einmalig eine
- * zufällige Auswahl gezogen (siehe pickTemplateQuestions) – alle, die
- * später in dieses Buch schreiben, sehen dieselbe Auswahl. Nach dem
+ * (links/rechts); der volle Pool landet im Buch. Wer einen Eintrag schreibt,
+ * bekommt daraus eine eigene zufällige Auswahl (siehe pickBySection, benutzt
+ * in /schreiben) – so unterscheidet sich jede Seite im Buch. Nach dem
  * Anlegen ist jede Frage pro Buch weiterhin frei editierbar (§06).
  */
 
@@ -343,19 +343,22 @@ function shuffled<T>(items: T[]): T[] {
 }
 
 /**
- * Zieht einmalig eine zufällige Auswahl aus dem Fragen-Pool der Vorlage
- * (je Sektion `pick.left`/`pick.right` Fragen, als required markierte
- * Fragen sind immer dabei). Wird beim Anlegen eines Buchs bzw. beim
- * Anwenden einer Vorlage aufgerufen – danach bekommt jede Person, die in
- * dieses Buch schreibt, dieselbe Auswahl vorgelegt.
+ * Zieht eine zufällige Auswahl aus einem Fragen-Pool (je Sektion `count.left`/
+ * `count.right` Fragen; als required markierte Fragen sind immer dabei).
+ * Generisch über TemplateQuestion und die DB-Question-Zeile nutzbar – jede
+ * Person, die in ein Buch schreibt, bekommt so ihre eigene Ziehung aus dem
+ * Buch-Fragenpool vorgelegt (siehe /schreiben load).
  */
-export function pickTemplateQuestions(tpl: Template): TemplateQuestion[] {
-	function pickSection(section: 'left' | 'right', count: number): TemplateQuestion[] {
-		const pool = tpl.questions.filter((q) => q.section === section);
-		const required = pool.filter((q) => q.required);
-		const optional = shuffled(pool.filter((q) => !q.required));
-		const need = Math.max(0, count - required.length);
+export function pickBySection<T extends { section: 'left' | 'right'; required?: boolean | null }>(
+	pool: T[],
+	count: { left: number; right: number }
+): T[] {
+	function pickSection(section: 'left' | 'right', n: number): T[] {
+		const items = pool.filter((q) => q.section === section);
+		const required = items.filter((q) => q.required);
+		const optional = shuffled(items.filter((q) => !q.required));
+		const need = Math.max(0, n - required.length);
 		return [...required, ...optional.slice(0, need)];
 	}
-	return [...pickSection('left', tpl.pick.left), ...pickSection('right', tpl.pick.right)];
+	return [...pickSection('left', count.left), ...pickSection('right', count.right)];
 }

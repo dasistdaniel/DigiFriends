@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { db } from './db';
 import { book, bookAccess, invite, question, type Book } from './db/schema';
 import { hashPassword, hashToken, newToken, verifyPassword } from './crypto';
-import { getTemplate, pickTemplateQuestions } from '$lib/templates';
+import { getTemplate } from '$lib/templates';
 
 export type CreateBookInput = {
 	title: string;
@@ -45,6 +45,8 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 				subtitle: input.subtitle || null,
 				introText: input.introText || null,
 				design: { theme: input.theme },
+				questionPickLeft: tpl.pick.left,
+				questionPickRight: tpl.pick.right,
 				moderationMode: input.moderationMode,
 				recoveryEmail: input.recoveryEmail || null
 			})
@@ -69,8 +71,11 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 			maxEntries: null
 		});
 
+		// Voller Fragen-Pool der Vorlage landet im Buch; welche Fragen eine
+		// einzelne Person davon zu sehen bekommt, wird erst beim Schreiben
+		// eines Eintrags zufällig gezogen (siehe /schreiben load).
 		await tx.insert(question).values(
-			pickTemplateQuestions(tpl).map((q, i) => ({
+			tpl.questions.map((q, i) => ({
 				bookId: created.id,
 				position: i,
 				label: q.label,

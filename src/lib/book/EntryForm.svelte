@@ -69,7 +69,9 @@
 	use:enhance={() => {
 		submitting = true;
 		return async ({ update }) => {
-			await update({ reset: false });
+			// Nicht neu laden: die zufaellig gezogene Fragenauswahl soll auch
+			// nach einem fehlgeschlagenen Absenden stabil bleiben.
+			await update({ reset: false, invalidateAll: false });
 			submitting = false;
 		};
 	}}
@@ -79,6 +81,7 @@
 	<input type="hidden" name="avatarAssetId" value={avatarAssetId} />
 	<input type="hidden" name="photoAssetIds" value={photoAssetIds.join(',')} />
 	<input type="hidden" name="drawingAssetIds" value={drawingAssetIds.join(',')} />
+	<input type="hidden" name="shownQuestionIds" value={questions.map((q) => q.id).join(',')} />
 
 	<div class="spread">
 		<BookPage side="left">

@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { db } from '$lib/server/db';
-import { asset, entry, question } from '$lib/server/db/schema';
+import { asset, entry } from '$lib/server/db/schema';
 import { loadBookAccess, requireAdmin } from '$lib/server/guard';
 import { deleteAsset } from '$lib/server/storage';
 import type { Actions, PageServerLoad } from './$types';
@@ -18,32 +18,33 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	if (locked) return { locked: true as const };
 	requireAdmin(access);
 
-	const [questions, entries] = await Promise.all([
-		db.query.question.findMany({
-			where: eq(question.bookId, access.book.id),
-			orderBy: asc(question.position)
-		}),
-		db.query.entry.findMany({
-			where: eq(entry.bookId, access.book.id),
-			orderBy: [asc(entry.position), asc(entry.createdAt)],
-			with: { answers: true, assets: true }
-		})
-	]);
+	const entries = await db.query.entry.findMany({
+		where: eq(entry.bookId, access.book.id),
+		orderBy: [asc(entry.position), asc(entry.createdAt)],
+		with: { answers: { with: { question: true } }, assets: true }
+	});
 
-	const firstQ = questions[0];
 	const assetBase = `/b/${params.token}/asset`;
 
-	const mapped = entries.map((e) => ({
-		id: e.id,
-		displayName: e.displayName || 'Anonym',
-		state: e.state,
-		position: e.position,
-		createdAt: e.createdAt,
-		preview: firstQ ? (e.answers.find((a) => a.questionId === firstQ.id)?.valueText ?? '') : '',
-		photoCount: e.assets.filter((a) => a.kind === 'photo').length,
-		drawingCount: e.assets.filter((a) => a.kind === 'drawing').length,
-		avatar: e.avatarAssetId ? `${assetBase}/${e.avatarAssetId}/thumb` : null
-	}));
+	const mapped = entries.map((e) => {
+		// Jeder Eintrag hat seine eigene Fragenauswahl; die Vorschau zeigt
+		// dessen erste tatsaechlich beantwortete Frage (nach Position sortiert).
+		const firstAnswer = [...e.answers]
+			.filter((a) => a.valueText.trim().length > 0)
+			.sort((a, b) => a.question.position - b.question.position)[0];
+
+		return {
+			id: e.id,
+			displayName: e.displayName || 'Anonym',
+			state: e.state,
+			position: e.position,
+			createdAt: e.createdAt,
+			preview: firstAnswer?.valueText ?? '',
+			photoCount: e.assets.filter((a) => a.kind === 'photo').length,
+			drawingCount: e.assets.filter((a) => a.kind === 'drawing').length,
+			avatar: e.avatarAssetId ? `${assetBase}/${e.avatarAssetId}/thumb` : null
+		};
+	});
 
 	return {
 		locked: false as const,
