@@ -23,6 +23,7 @@
 		number,
 		theme,
 		ornaments,
+		plain = false,
 		children
 	}: {
 		side?: 'left' | 'right';
@@ -31,6 +32,8 @@
 		theme?: string;
 		/** dekorative Ebene hinter dem Text (Blätter, Bäume …); ohne Angabe erscheint ein Eckdoodle */
 		ornaments?: Snippet;
+		/** ohne Papier-Verlauf/Maserung - fuer den Druck-Export (spart Tinte, druckt sauberer) */
+		plain?: boolean;
 		children: Snippet;
 	} = $props();
 
@@ -46,8 +49,8 @@
 	);
 </script>
 
-<div class="page page--{side}" data-side={side}>
-	<div class="page__grain" aria-hidden="true"></div>
+<div class="page page--{side}" class:page--plain={plain} data-side={side}>
+	{#if !plain}<div class="page__grain" aria-hidden="true"></div>{/if}
 	{#if ornaments}
 		<div class="page__ornaments" aria-hidden="true">{@render ornaments()}</div>
 	{:else}
@@ -85,6 +88,10 @@
 		color: var(--ink-900);
 		display: flex;
 		flex-direction: column;
+	}
+
+	.page--plain {
+		background: #fff;
 	}
 
 	/* Schatten zur Bindung hin */
