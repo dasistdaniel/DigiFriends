@@ -3,6 +3,7 @@ import { db } from './db';
 import { book, bookAccess, invite, question, type Book } from './db/schema';
 import { hashPassword, hashToken, newToken, verifyPassword } from './crypto';
 import { getTemplate } from '$lib/templates';
+import { notify } from './ntfy';
 
 export type CreateBookInput = {
 	title: string;
@@ -86,6 +87,12 @@ export async function createBook(input: CreateBookInput): Promise<CreatedBook> {
 		);
 
 		return created.id;
+	});
+
+	await notify({
+		title: 'Neues Buch',
+		message: `„${input.title}" wurde angelegt.`,
+		tags: 'sparkles'
 	});
 
 	return { bookId, tokens };

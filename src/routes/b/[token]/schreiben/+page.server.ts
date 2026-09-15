@@ -7,6 +7,7 @@ import { loadBookAccess, requireWrite } from '$lib/server/guard';
 import { MAX_DRAWINGS_PER_ENTRY, MAX_PHOTOS_PER_ENTRY, ORIGIN } from '$lib/server/env';
 import { pickBySection } from '$lib/templates';
 import { rateLimit } from '$lib/server/rateLimit';
+import { notify } from '$lib/server/ntfy';
 import type { Actions, PageServerLoad } from './$types';
 
 /** Grosszuegig, damit z. B. mehrere Gaeste hinterm selben WLAN nicht ausgebremst werden. */
@@ -237,6 +238,12 @@ export const actions: Actions = {
 					})
 					.where(eq(asset.id, photoIds[i]));
 			}
+		});
+
+		await notify({
+			title: 'Neuer Eintrag',
+			message: `${displayName} hat einen Eintrag in „${access.book.title}" geschrieben.`,
+			tags: 'memo'
 		});
 
 		return {

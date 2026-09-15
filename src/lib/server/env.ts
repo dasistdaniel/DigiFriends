@@ -34,6 +34,14 @@ export const SMTP_URL = env.SMTP_URL?.trim() || null;
 export const MAIL_FROM = env.MAIL_FROM?.trim() || 'Freundebuch <noreply@example.com>';
 export const MAIL_ENABLED = SMTP_URL !== null;
 
+/**
+ * ntfy-Push-Benachrichtigungen (optional): volle Topic-URL, z. B.
+ * https://ntfy.example.com/mein-topic. Ohne gesetzte URL passiert nichts.
+ * NTFY_TOKEN ist nur noetig, wenn der ntfy-Server Auth verlangt.
+ */
+export const NTFY_URL = env.NTFY_URL?.trim() || null;
+export const NTFY_TOKEN = env.NTFY_TOKEN?.trim() || null;
+
 if (SECRET_PEPPER === 'dev-only-change-me' && process.env.NODE_ENV === 'production') {
 	console.warn(
 		'[digifriends] SECRET_PEPPER ist nicht gesetzt – bitte in Produktion konfigurieren.'

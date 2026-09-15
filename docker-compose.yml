@@ -13,11 +13,13 @@ services:
       INACTIVE_AFTER_DAYS: ${INACTIVE_AFTER_DAYS:-365}
       UPLOAD_DIR: /data/uploads
       MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-8388608}
-      MAX_PHOTOS_PER_ENTRY: ${MAX_PHOTOS_PER_ENTRY:-6}
+      MAX_PHOTOS_PER_ENTRY: ${MAX_PHOTOS_PER_ENTRY:-4}
       MAX_DRAWINGS_PER_ENTRY: ${MAX_DRAWINGS_PER_ENTRY:-4}
       BODY_SIZE_LIMIT: ${BODY_SIZE_LIMIT:-12000000}
       SMTP_URL: ${SMTP_URL:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      NTFY_URL: ${NTFY_URL:-}
+      NTFY_TOKEN: ${NTFY_TOKEN:-}
       # Genau ein Reverse-Proxy-Hop davor (siehe .env.example): adapter-node
       # liest die echte Besucher-IP aus X-Forwarded-For statt der Proxy-IP,
       # damit IP-basiertes Rate-Limiting funktioniert.
